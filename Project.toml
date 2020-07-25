@@ -1,0 +1,13 @@
+name = "YAActL"
+uuid = "4c422213-1242-4325-9ff2-ab065d5354a7"
+authors = ["Paul Bayer"]
+version = "0.1.0"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]

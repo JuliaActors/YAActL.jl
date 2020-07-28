@@ -12,9 +12,6 @@ Follows Agha's classic text *Actors: A Model of Concurrent Computation in Distri
 ```julia
 using YAActL, Printf
 
-t = Ref{Task}()                # this is for debugging
-lk = LinkParams(taskref=t)
-
 struct Print <: Message        # define a message
     txt::String
 end
@@ -27,7 +24,7 @@ end
 pr(info, msg::Print) = print(@sprintf("%s: %s\n", info, msg.txt))
 
 # start an actor with the first behavior and save the returned link
-myactor = Actor(lk, pr)
+myactor = Actor(pr)
 ```
 
 now we can interact with it:

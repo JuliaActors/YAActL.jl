@@ -60,6 +60,8 @@ for i ∈ 1:5
     send!(mystack, Push(i))
 end
 
+(send!(mystack, Print()); sleep(1))
+
 for i ∈ 1:5
     send!(mystack, Pop(response))
     println(take!(response))

@@ -1,3 +1,6 @@
+#
+# This is part of YAActL.jl, 2020, P.Bayer, License MIT
+#
 
 # implements the actor loop
 function act(ch::Link)
@@ -33,7 +36,6 @@ return a link to the created actor, a `Channel{Message}` object.
 """
 function Actor(lp::LinkParams, bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N}
     ch = Channel{Message}(act, lp.size, taskref=lp.taskref, spawn=lp.spawn)
-    yield()
     become!(ch, bhv, args..., kwargs...)
     return ch
 end
@@ -60,6 +62,9 @@ Cause another actor to assume a new behavior.
 become!(lnk::Link, bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N} =
     send!(lnk, Become(bhv, args, kwargs))
 
+"Get a link to yourself from inside an actor."
+self() = current_task().code.chnl :: Link
+
 """
     become(bhv::Function, args...; kwargs...)
 
@@ -71,4 +76,4 @@ Cause yourself to take on a new behavior. Called from inside an actor/behavior.
 - `kwargs...`: keyword arguments to `bhv`.
 """
 become(bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N} =
-    pushfirst!(current_task().code.chnl.data, Become(bhv, args, kwargs))
+    pushfirst!(self().data, Become(bhv, args, kwargs))

@@ -1,8 +1,10 @@
 #
 # This is part of YAActL.jl, 2020, P.Bayer, License MIT
 #
+"Type for messages to actors."
 abstract type Message end
 
+"Establish a message channel used to communicate with actors."
 const Link = Channel{Message}
 
 """
@@ -26,10 +28,15 @@ struct LinkParams
     LinkParams(size=32; taskref=nothing, spawn=false) = new(size,taskref, spawn)
 end
 
+"shortcut for [`LinkParams`](@ref) with `spawn=true`."
+parallel(size=32; taskref=nothing) = LinkParams(size, taskref=taskref, spawn=true)
+
+"internal message `Become(f::Function, args...; kwargs...)` for behavior change."
 struct Become <: Message
     f::Function
     args::Tuple
     kwargs::Base.Iterators.Pairs
 end
 
+"message `Stop()` causes an actor to stop."
 struct Stop <: Message end

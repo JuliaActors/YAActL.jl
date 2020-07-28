@@ -78,5 +78,13 @@ Cause yourself to take on a new behavior. Called from inside an actor/behavior.
 - `args...`: arguments to `bhv` (without `msg`),
 - `kwargs...`: keyword arguments to `bhv`.
 """
-become(bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N} =
-    pushfirst!(self().data, Become(bhv, args, kwargs))
+function become(bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N}
+    c = self()
+    lock(c)
+    try
+        Base.check_channel_state(c)
+        pushfirst!(c.data, Become(bhv, args, kwargs))
+    finally
+        unlock(c)
+    end
+end

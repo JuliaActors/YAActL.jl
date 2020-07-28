@@ -1,6 +1,6 @@
 # Usage
 
-## Links and Messages
+## Links and messages
 
 We communicate with actors and actors can communicate with each other (and with themselves) over links and messages.
 
@@ -30,9 +30,9 @@ struct Response{T} <: Message
 end
 ```
 
-## Actors and Behaviors
+## Actors and their behaviors
 
-Actors are Julia tasks executing functions as behaviors. If a message arrives, the actor loop passes the message to the behavior function as the last argument. In Julia we want the behavior functions to dispatch on the messages. In the following example we define two behaviors `forward!` and `stack_node`. With `become` actors can change their behaviors.
+Actors are Julia tasks executing functions as behaviors. If a message arrives, the actor loop passes the message to the behavior function as the last argument. In Julia we want the behavior functions to dispatch on messages. In the following example we define two behaviors `forward!` and `stack_node`. There are two methods for `stack_node`, dispatching on `Push` and `Pop`. With `become` actors can change their behavior. Actors can generate other actors.
 
 ```julia
 forward!(lk::L, msg::M) where {L<:Link, M<:Message} = send!(lk, msg)
@@ -48,7 +48,15 @@ function stack_node(sn::StackNode, msg::Push)
 end
 ```
 
-With `Actor` we can setup actors, with `send!` we can send messages to them, with `become!` we can cause to change their behaviors. 
+With `Actor` we can setup actors, with `send!` we can send them messages, with `become!` we can cause them to change their behaviors.
+
+```julia
+mystack = Actor(lk, stack_node, StackNode(nothing, Link()))
+```
+
+!!! note
+    If we setup an actor we don't pass the last message argument of the behavior
+    function to `Actor`.
 
 ```@docs
 Actor

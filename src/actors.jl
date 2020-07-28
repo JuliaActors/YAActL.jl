@@ -46,7 +46,7 @@ Actor(bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N} =
     send!(lnk::Link, m::Message)
 Send a message `m` to an actor over a link `lnk`.
 """
-send!(lnk::Link, m::Message) = (put!(lnk, m); yield())
+send!(lnk::Link, m::M) where {M<:Message} = (put!(lnk, m); yield())
 
 """
     become!(lnk::Link, bhv::Function, args...; kwargs...)

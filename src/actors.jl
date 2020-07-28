@@ -24,7 +24,7 @@ Actor([lp::LinkParams], bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Funct
 ```
 Create a new actor. Start a task executing repeatedly the behavior `bhv`. The actor
 listens to messages `msg` sent over the returned link and executes
-`bhv(args..., self, msg, kwargs)` for each message. The actor stops if sent `Stop()`.
+`bhv(args..., msg, kwargs)` for each message. The actor stops if sent `Stop()`.
 
 # Arguments
 - `[lp::LinkParams]`: optional parameters for creating the link,
@@ -62,7 +62,10 @@ Cause another actor to assume a new behavior.
 become!(lnk::Link, bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N} =
     send!(lnk, Become(bhv, args, kwargs))
 
-"Get a link to yourself from inside an actor."
+"""
+    self()
+Get a [`Link`](@ref) to yourself from inside an actor.
+"""
 self() = current_task().code.chnl :: Link
 
 """

@@ -1,6 +1,7 @@
 using Documenter
 
 makedocs(
+    modules = [YAActL],
     format = Documenter.HTML(prettyurls = get(ENV, "CI", nothing) == "true"),
     sitename = "YAActL.jl",
     authors  = "Paul Bayer",

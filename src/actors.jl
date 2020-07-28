@@ -20,19 +20,19 @@ end
 
 """
 ```
-Actor([lp::LinkParams], bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N}
+Actor([lp::LinkParams], bhv::Function, args...; kwargs...)
 ```
 Create a new actor. Start a task executing repeatedly the behavior `bhv`. The actor
 listens to messages `msg` sent over the returned link and executes
 `bhv(args..., msg, kwargs)` for each message. The actor stops if sent `Stop()`.
 
 # Arguments
-- `[lp::LinkParams]`: optional parameters for creating the link,
+- `[lp::LinkParams]`: optional parameters for creating the actor,
 - `bhv::Function`: function implementing the actor's behavior,
 - `args...`: arguments to `bhv`, (without `msg`)
 - `kwargs...`: keyword arguments to `bhv`.
 
-return a link to the created actor, a `Channel{Message}` object.
+return a [`Link`](@ref) to the created actor, a `Channel{Message}` object.
 """
 function Actor(lp::LinkParams, bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N}
     ch = Channel{Message}(act, lp.size, taskref=lp.taskref, spawn=lp.spawn)

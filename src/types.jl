@@ -37,7 +37,7 @@ end
 """
     parallel(size=32; taskref=nothing)
 
-Return for [`LinkParams`](@ref) with `spawn=true`.
+Return [`LinkParams`](@ref) with `spawn=true`.
 """
 parallel(size=32; taskref=nothing) = LinkParams(size, taskref=taskref, spawn=true)
 

@@ -15,10 +15,6 @@ struct Push{T} &lt;: Message
     content::T
 end
 
-struct Response{T} &lt;: Message
-    content::T
-end
-
 # define the forwarder behavior
 forward!(lk::L, msg::M) where {L&lt;:Link, M&lt;:Message} = send!(lk, msg)
 
@@ -68,31 +64,22 @@ Response{Int64}(3)
 Response{Int64}(2)
 Response{Int64}(1)</code></pre><h2 id="A-Recursive-Factorial"><a class="docs-heading-anchor" href="#A-Recursive-Factorial">A Recursive Factorial</a><a id="A-Recursive-Factorial-1"></a><a class="docs-heading-anchor-permalink" href="#A-Recursive-Factorial" title="Permalink"></a></h2><p>This is Agha&#39;s example 3.2.2:</p><blockquote><p>Our implementation of the <em>factorial</em> relies on creating a <em>customer</em> which waits for the appropriate communication, in this case from the factorial actor itself. The factorial actor is free to concurrently process the next communication. We assume that a communication to a factorial includes a mail address to which the value of the factorial is to be sent.</p></blockquote><p>For demonstration here we setup our customer actors on parallel threads:</p><pre><code class="language-julia">using YAActL
 
-struct Factorial &lt;: Message
-    n::Integer
-    u::Link
-end
-
-struct Response &lt;: Message
-    y::Integer
-end
-
 # implement the behaviors
-function rec_factorial(f::Factorial)
+function rec_factorial(f::Request)
     if f.n == 0
         send!(f.u, Response(1))
     else
         c = Actor(parallel(), rec_customer, f.n, f.u) # setup parallel actors
-        send!(self(), Factorial(f.n-1, c))
+        send!(self(), Request(f.n - 1, c))
     end
 end
 
 rec_customer(n::Integer, u::Link, k::Response) = send!(u, Response(n * k.y))
 
 # setup factorial actor and response link
-A = Actor(rec_factorial)
-resp = newLink()</code></pre><pre><code class="language-julia">julia&gt; for i ∈ 0:20
-           send!(A, Factorial(i, resp))
+F = Actor(rec_factorial)
+resp = newLink()</code></pre><p>Now we can send requests to the factorial actor and take the answers from the response link:</p><pre><code class="language-julia">julia&gt; for i ∈ 0:20
+           send!(F, Request(i, resp))
            println(take!(resp))
        end
 Response(1)
@@ -115,4 +102,4 @@ Response(20922789888000)
 Response(355687428096000)
 Response(6402373705728000)
 Response(121645100408832000)
-Response(2432902008176640000)</code></pre><p>If we send our requests to the factorial actor successively without waiting and then read the response link, we still get the same sequence – which is a bit surprising.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../usage/">« Usage</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 29 July 2020 10:37">Wednesday 29 July 2020</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+Response(2432902008176640000)</code></pre><p>If we send our requests successively without waiting and then read the response link, we still get the same sequence – which is a bit surprising.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../usage/">« Usage</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 29 July 2020 14:19">Wednesday 29 July 2020</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

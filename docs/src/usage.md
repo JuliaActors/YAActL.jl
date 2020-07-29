@@ -2,7 +2,7 @@
 
 ## Messages
 
-Messages to `YAActL` actors have a common abstract type: `Message`. This may seem first as a limitation but it enables the actor to dispatch on different message types. Some basic message types are provided
+Messages to `YAActL` actors have a common abstract type. This may seem first a limitation but it enables actors to [dispatch](https://docs.julialang.org/en/v1/manual/methods/#Methods-1) their behavior functions on message types. Some basic message types are provided
 
 ```@docs
 Message
@@ -24,6 +24,8 @@ struct Push{T} <: Message
 end
 ```
 
+With dispatch on message types we can easily implement state machines.
+
 ## Links
 
 We send messages to actors and actors can send them to others over links. In fact, an actor is only represented by its link. If we want a response from an actor, we must send it our own link together with a request.
@@ -37,7 +39,7 @@ parallel
 
 ## Actors and their behaviors
 
-Actors are Julia tasks executing functions as behaviors. If a message arrives, the actor loop passes the message to the behavior function as the last argument. In Julia we want the behavior functions to dispatch on messages. In the following example we define two behaviors `forward!` and `stack_node`. There are two methods for `stack_node`, dispatching on `Push` and `Pop`. Actors can change their behavior with `become`. They can also generate other actors. For example:
+Actors are Julia tasks executing functions as behaviors. If a message arrives, the actor loop passes the message to the behavior function as the last argument. In Julia often we want the behavior functions to dispatch on messages. In the following example we define two behaviors `forward!` and `stack_node`. There are two methods for `stack_node`, dispatching on `Push` and `Pop`. Actors can change their behavior with `become`. They can also generate other actors. For example:
 
 ```julia
 # implement behaviors
@@ -62,8 +64,8 @@ mystack = Actor(lk, stack_node, StackNode(nothing, Link()))
 ```
 
 !!! note
-    Don't pass the last `msg` argument of the behavior function to the `Actor`
-    setup!
+
+    Don't pass the last `msg` argument of the behavior function to the `Actor`.
 
 ```@docs
 Actor
@@ -72,3 +74,5 @@ self
 send!
 become!
 ```
+
+With dispatching on messages actors can represent state machines. With `become` they can switch their behavior between different state machines or with `become!` we can cause them to switch.

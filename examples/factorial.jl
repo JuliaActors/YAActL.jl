@@ -3,38 +3,29 @@
 #
 using YAActL
 
-struct Factorial <: Message
-    n::Integer
-    u::Link
-end
-
-struct Response <: Message
-    y::Integer
-end
-
 # implement the behaviors
-function rec_factorial(f::Factorial)
-    if f.n == 0
+function rec_factorial(f::Request)
+    if f.x == 0
         send!(f.u, Response(1))
     else
-        c = Actor(parallel(), rec_customer, f.n, f.u) # setup parallel actors
-        send!(self(), Factorial(f.n-1, c))
+        c = Actor(parallel(), rec_customer, f.x, f.u) # setup parallel actors
+        send!(self(), Request(f.x - 1, c))
     end
 end
 
 rec_customer(n::Integer, u::Link, k::Response) = send!(u, Response(n * k.y))
 
 # setup factorial actor and response link
-A = Actor(rec_factorial)
+F = Actor(rec_factorial)
 resp = newLink()
 
 for i ∈ 0:20      # send and receive loop
-    send!(A, Factorial(i, resp))
+    send!(F, Request(i, resp))
     println(take!(resp))
 end
 
-for i ∈ 0:20      # send all requests
-    send!(A, Factorial(i, resp))
+for i ∈ 0:20      # send all requests in one loop
+    send!(F, Request(i, resp))
 end
 for i ∈ 0:20      # receive all results
     println(take!(resp))

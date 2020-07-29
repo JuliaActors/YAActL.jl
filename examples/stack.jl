@@ -19,10 +19,6 @@ struct Push{T} <: Message
     content::T
 end
 
-struct Response{T} <: Message
-    content::T
-end
-
 struct Print <: Message end
 
 forward!(lk::L, msg::M) where {L<:Link, M<:Message} = send!(lk, msg)

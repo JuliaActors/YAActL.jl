@@ -25,10 +25,6 @@ struct Push{T} <: Message
     content::T
 end
 
-struct Response{T} <: Message
-    content::T
-end
-
 # define the forwarder behavior
 forward!(lk::L, msg::M) where {L<:Link, M<:Message} = send!(lk, msg)
 
@@ -96,36 +92,28 @@ For demonstration here we setup our customer actors on parallel threads:
 ```julia
 using YAActL
 
-struct Factorial <: Message
-    n::Integer
-    u::Link
-end
-
-struct Response <: Message
-    y::Integer
-end
-
 # implement the behaviors
-function rec_factorial(f::Factorial)
+function rec_factorial(f::Request)
     if f.n == 0
         send!(f.u, Response(1))
     else
         c = Actor(parallel(), rec_customer, f.n, f.u) # setup parallel actors
-        send!(self(), Factorial(f.n-1, c))
+        send!(self(), Request(f.n - 1, c))
     end
 end
 
 rec_customer(n::Integer, u::Link, k::Response) = send!(u, Response(n * k.y))
 
 # setup factorial actor and response link
-A = Actor(rec_factorial)
+F = Actor(rec_factorial)
 resp = newLink()
 ```
 
+Now we can send requests to the factorial actor and take the answers from the response link:
 
 ```julia
 julia> for i ∈ 0:20
-           send!(A, Factorial(i, resp))
+           send!(F, Request(i, resp))
            println(take!(resp))
        end
 Response(1)
@@ -151,4 +139,4 @@ Response(121645100408832000)
 Response(2432902008176640000)
 ```
 
-If we send our requests to the factorial actor successively without waiting and then read the response link, we still get the same sequence – which is a bit surprising.
+If we send our requests successively without waiting and then read the response link, we still get the same sequence – which is a bit surprising.

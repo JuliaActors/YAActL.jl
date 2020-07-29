@@ -20,6 +20,7 @@ A = Actor(lp, inca)
 send!(A, Incr(10))
 sleep(0.01)
 @test a[1] == 10
-send!(A, Decr(10))
-sleep(0.01)
+send!(A, Decr(5))
+send!(A, Decr(5))
+sleep(0.1)
 @test a[1] == 0

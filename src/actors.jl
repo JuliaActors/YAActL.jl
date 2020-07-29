@@ -3,10 +3,10 @@
 #
 
 # implements the actor loop
-function act(ch::Link)
+function act(lk::Link)
     B = Become(+,(),Base.Iterators.pairs(()))
     while true
-        msg = take!(ch)
+        msg = take!(lk)
         if msg isa Become
             B = msg
         elseif msg isa Stop
@@ -35,32 +35,47 @@ listens to messages `msg` sent over the returned link and executes
 return a [`Link`](@ref) to the created actor, a `Channel{Message}` object.
 """
 function Actor(lp::LinkParams, bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N}
-    ch = Channel{Message}(act, lp.size, taskref=lp.taskref, spawn=lp.spawn)
-    become!(ch, bhv, args..., kwargs...)
-    return ch
+    lk = Link(act, lp.size, taskref=lp.taskref, spawn=lp.spawn)
+    become!(lk, bhv, args..., kwargs...)
+    return lk
 end
 Actor(bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N} =
     Actor(LinkParams(), bhv, args..., kwargs...)
 
 """
-    send!(lnk::Link, m::Message)
-Send a message `m` to an actor over a link `lnk`.
+    send!(lk::Link, m::Message)
+Send a message `m` to an actor over a link `lk`.
 """
-send!(lnk::Link, m::M) where {M<:Message} = (put!(lnk, m); yield())
+function send!(lk::Link, m::M) where {M<:Message}
+    # reimplements Base.put_buffered with a modification
+    lock(lk)
+    try
+        while length(lk.data) ≥ lk.sz_max  # modification: allow buffer overflow
+            Base.check_channel_state(lk)
+            wait(lk.cond_put)
+        end
+        push!(lk.data, m)
+        # notify all, since some of the waiters may be on a "fetch" call.
+        notify(lk.cond_take, nothing, true, false)
+    finally
+        unlock(lk)
+    end
+    return m
+end
 
 """
-    become!(lnk::Link, bhv::Function, args...; kwargs...)
+    become!(lk::Link, bhv::Function, args...; kwargs...)
 
 Cause another actor to assume a new behavior.
 
 # Arguments
-- `lnk::Link`: Link to an actor,
+- `lk::Link`: Link to an actor,
 - `bhv::Function`: function implementing the new behavior,
 - `args...`: arguments to `bhv` (without `msg`),
 - `kwargs...`: keyword arguments to `bhv`.
 """
-become!(lnk::Link, bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N} =
-    send!(lnk, Become(bhv, args, kwargs))
+become!(lk::Link, bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N} =
+    send!(lk, Become(bhv, args, kwargs))
 
 """
     self()
@@ -79,12 +94,12 @@ Cause yourself to take on a new behavior. Called from inside an actor/behavior.
 - `kwargs...`: keyword arguments to `bhv`.
 """
 function become(bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N}
-    c = self()
-    lock(c)
+    lk = self()
+    lock(lk)
     try
-        Base.check_channel_state(c)
-        pushfirst!(c.data, Become(bhv, args, kwargs))
+        Base.check_channel_state(lk)
+        pushfirst!(lk.data, Become(bhv, args, kwargs))
     finally
-        unlock(c)
+        unlock(lk)
     end
 end

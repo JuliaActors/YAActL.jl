@@ -6,6 +6,7 @@ We communicate with actors and actors can communicate with each other (and with 
 
 ```@docs
 Link
+newLink
 LinkParams
 parallel
 Message
@@ -55,8 +56,8 @@ mystack = Actor(lk, stack_node, StackNode(nothing, Link()))
 ```
 
 !!! note
-    If we setup an actor we don't pass the last message argument of the behavior
-    function to `Actor`.
+    We don't pass the last message argument of the behavior function in `Actor`
+    setup.
 
 ```@docs
 Actor

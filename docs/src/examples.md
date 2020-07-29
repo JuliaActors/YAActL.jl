@@ -84,3 +84,71 @@ Response{Int64}(3)
 Response{Int64}(2)
 Response{Int64}(1)
 ```
+
+## A Recursive Factorial
+
+This is Agha's example 3.2.2:
+
+> Our implementation of the *factorial* relies on creating a *customer* which waits for the appropriate communication, in this case from the factorial actor itself. The factorial actor is free to concurrently process the next communication. We assume that a communication to a factorial includes a mail address to which the value of the factorial is to be sent.
+
+For demonstration here we setup our customer actors on parallel threads:
+
+```julia
+using YAActL
+
+struct Factorial <: Message
+    n::Integer
+    u::Link
+end
+
+struct Response <: Message
+    y::Integer
+end
+
+# implement the behaviors
+function rec_factorial(f::Factorial)
+    if f.n == 0
+        send!(f.u, Response(1))
+    else
+        c = Actor(parallel(), rec_customer, f.n, f.u) # setup parallel actors
+        send!(self(), Factorial(f.n-1, c))
+    end
+end
+
+rec_customer(n::Integer, u::Link, k::Response) = send!(u, Response(n * k.y))
+
+# setup factorial actor and response link
+A = Actor(rec_factorial)
+resp = newLink()
+```
+
+
+```julia
+julia> for i ∈ 0:20
+           send!(A, Factorial(i, resp))
+           println(take!(resp))
+       end
+Response(1)
+Response(1)
+Response(2)
+Response(6)
+Response(24)
+Response(120)
+Response(720)
+Response(5040)
+Response(40320)
+Response(362880)
+Response(3628800)
+Response(39916800)
+Response(479001600)
+Response(6227020800)
+Response(87178291200)
+Response(1307674368000)
+Response(20922789888000)
+Response(355687428096000)
+Response(6402373705728000)
+Response(121645100408832000)
+Response(2432902008176640000)
+```
+
+If we send our requests to the factorial actor successively without waiting and then read the response link, we still get the same sequence – which is a bit surprising.

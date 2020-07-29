@@ -7,14 +7,21 @@ abstract type Message end
 """
     Link
 
-Is a `Channel{Message}` type for communicating with actors.
+A `Channel{Message}` type for communicating with actors.
 
 !!! warn
 
-    In actor systems you always use buffered message links to avoid blocking.
-    If an actor must respond on an unbuffered or full channel it blocks unduely.
-    `Link()` creates an unbuffered Channel. Use `Link(32)` or [`newLink()`](@ref newLink)
-    instead.
+    In actor systems we always use buffered links to avoid blocking.
+    Responding on an unbuffered or full link causes blocking. `Link()` creates
+    an unbuffered Channel, use `Link(32)` or [`newLink()`](@ref newLink)
+    instead!
+
+# Example
+
+```julia
+julia> response = Link(32)
+Channel{Message}(sz_max:32,sz_curr:0)
+```
 """
 const Link = Channel{Message}
 
@@ -24,6 +31,12 @@ const Link = Channel{Message}
 Create a link of buffer size `sz` used to communicate with actors.
 Buffer sizes `sz < 10` are not allowed. This is used only for response links
 from actors.
+
+# Example
+```julia
+julia> response = newLink()
+Channel{Message}(sz_max:32,sz_curr:0)
+```
 """
 function newLink(sz::Integer=32)
     @assert sz ≥ 10 "Link buffer size < 10 not allowed"

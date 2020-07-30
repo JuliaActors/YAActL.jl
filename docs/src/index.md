@@ -1,8 +1,8 @@
 # YAActL
 
-`YAActL` is in early development. I could not find a suitable actor library for implementing reactive state machines in `DiscreteEvents` and `StateMachines`. So I am writing my own. Likewise it helps me to learn the actor concept.
+*Yet Another Actor Library* (in Julia)
 
-`YAActL` uses native Julia tasks and channels to implement actors.
+`YAActL` is in early development. It uses native Julia tasks and channels to implement actors.
 
 ## Installation
 
@@ -47,7 +47,19 @@ julia> send!(myactor, Print("bla bla bla"));     # and send again a message
 New behavior: bla bla bla
 ```
 
+## Why YAActl?
+
+I could not find a suitable actor library for implementing reactive state machines in [`DiscreteEvents`](https://github.com/pbayer/DiscreteEvents.jl) and [`StateMachines`](https://github.com/pbayer/StateMachines.jl). So I am writing my own. Likewise it helps me to learn the actor concept. Please join me to develop it.
+
 ## References
 
 - Gul Agha: Actors, A Model of Concurrent Computation in Distributed Systems.- 1986, MIT Press
 - Vaughn Vernon: Reactive Messaging Patterns with the Actor Model, Applications and Integrations in Scala and Akka.- 2016, Pearson
+
+## Author(s)
+
+- [Paul Bayer](https://github.com/pbayer)
+
+## License
+
+`YAActL` is licensed under the [MIT License](https://github.com/pbayer/YAActL.jl/blob/master/LICENSE).

@@ -1,15 +1,30 @@
 # Usage
 
+> An actor is a computational entity that, in response to a message it 
+>   receives, can concurrently:
+>    - send a finite number of messages to other actors;
+>    - create a finite number of new actors;
+>    - designate the behavior to be used for the next message it receives. [^1]
+
+`YAActL` provides a library for *messages*, *links* (message channels), *behaviors* and *actors* which enables us to implement actor systems in Julia.
+
 ## Messages
 
-Messages to `YAActL` actors have a common abstract type. This may seem first a limitation but it enables actors to [dispatch](https://docs.julialang.org/en/v1/manual/methods/#Methods-1) their behavior functions on message types. Some basic message types are provided
+Messages in `YAActL` have a common abstract type. This enables actors to [dispatch](https://docs.julialang.org/en/v1/manual/methods/#Methods-1) their behavior functions on message types. 
+
+Some basic message types are for setting up the type hierarchy and for controlling the actors themselves:
 
 ```@docs
 Message
-Request
-Response
 Stop
 YAActL.Become
+```
+
+The following message types are for executing and dispatching standard behaviors:
+
+```@docs
+Request
+Response
 ```
 
 Other message types can be implemented by the user, for example:
@@ -28,7 +43,7 @@ With dispatch on message types we can easily implement state machines.
 
 ## Links
 
-We send messages to actors and actors can send them to others over links. In fact, an actor is only represented by its link. If we want a response from an actor, we must send it our own link together with a request.
+We send messages to actors and actors can send them to others over links. In fact, an actor is only represented by its link. If we want a response from an actor, we must send it our own link together with a request message.
 
 ```@docs
 Link
@@ -37,14 +52,13 @@ LinkParams
 parallel
 ```
 
-## Actors and their behaviors
+## Behaviors
 
-Actors are Julia tasks executing functions as behaviors. If a message arrives, the actor loop passes the message to the behavior function as the last argument. Therefore a behavior function must take a `Message` as its last argument.
+What an actor does when a message arrives, is implemented in a behavior function. A behavior function must take a `Message` as its last argument.
 
-Often we want the behavior functions to dispatch on messages. In the following example we define two behaviors `forward!` and `stack_node`. There are two methods for `stack_node`, for dispatching on `Push` and `Pop`. Actors can change their behavior with `become`. They can also generate other actors. For example:
+In the following example we define two behaviors `forward!` and `stack_node`. There are two methods for `stack_node`, dispatching on `Push` and `Pop`. 
 
 ```julia
-# implement behaviors
 forward!(lk::L, msg::M) where {L<:Link, M<:Message} = send!(lk, msg)
 
 function stack_node(sn::StackNode, msg::Pop)
@@ -58,16 +72,20 @@ function stack_node(sn::StackNode, msg::Push)
 end
 ```
 
-With `Actor` we can setup actors, with `send!` we can send them messages, with `become!` we can cause them to change their behaviors.
+Actors change their behavior with `become`. They also can create other actors. They can send messages to themselves and other actors.
+
+
+## Actors
+
+`Actor` starts an actor on a behavior and returns a link to it. 
 
 ```julia
-# setup an actor with a defined behavior
-mystack = Actor(lk, stack_node, StackNode(nothing, Link()))
+mystack = Actor(stack_node, StackNode(nothing, Link()))
 ```
 
-!!! note
+We pass the behavior function and its arguments (an empty `StackNode` but without the last `msg` argument!) to the actor.
 
-    Don't pass the last `msg` argument of the behavior function to the `Actor`.
+Over the returned link we can `send!` messages to it, change its behaviors with `become!` or `stop!` it.
 
 ```@docs
 Actor
@@ -78,5 +96,9 @@ become!
 stop
 stop!
 ```
+ 
+With `become` actors can switch their behavior function (e.g. between different state machines) or `become!` causes them to switch.
 
-By dispatching on messages actors can represent state machines. With `become` they can switch their behavior between different state machines or `become!` can cause a switch.
+Therefore – at the moment – `YAActL` can represent parallel and connected nested state machines.
+
+[^1]:   See: The [Actor Model](https://en.wikipedia.org/wiki/Actor_model) on Wikipedia.

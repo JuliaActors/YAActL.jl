@@ -7,6 +7,6 @@ include("actors.jl")
 
 export  Message, Request, Response, Stop,
         Link, newLink, LinkParams, parallel,
-        Actor, send!, become!, become, self
+        Actor, self, send!, become!, become, stop!, stop
 
 end

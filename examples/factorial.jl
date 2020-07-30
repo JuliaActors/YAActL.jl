@@ -13,20 +13,23 @@ function rec_factorial(f::Request)
     end
 end
 
-rec_customer(n::Integer, u::Link, k::Response) = send!(u, Response(n * k.y))
+function rec_customer(n::Integer, u::Link, k::Response) 
+    send!(u, Response(n * k.y))
+    stop()
+end
 
 # setup factorial actor and response link
 F = Actor(rec_factorial)
 resp = newLink()
 
-for i ∈ 0:20      # send and receive loop
-    send!(F, Request(i, resp))
+for i ∈ 0:5:50      # send and receive loop
+    send!(F, Request(big(i), resp))
     println(take!(resp))
 end
 
-for i ∈ 0:20      # send all requests in one loop
-    send!(F, Request(i, resp))
+for i ∈ 0:5:50      # send all requests in one loop
+    send!(F, Request(big(i), resp))
 end
-for i ∈ 0:20      # receive all results
+for i ∈ 0:10      # receive all results
     println(take!(resp))
 end

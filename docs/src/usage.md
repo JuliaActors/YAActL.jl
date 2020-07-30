@@ -39,7 +39,9 @@ parallel
 
 ## Actors and their behaviors
 
-Actors are Julia tasks executing functions as behaviors. If a message arrives, the actor loop passes the message to the behavior function as the last argument. In Julia often we want the behavior functions to dispatch on messages. In the following example we define two behaviors `forward!` and `stack_node`. There are two methods for `stack_node`, dispatching on `Push` and `Pop`. Actors can change their behavior with `become`. They can also generate other actors. For example:
+Actors are Julia tasks executing functions as behaviors. If a message arrives, the actor loop passes the message to the behavior function as the last argument. Therefore a behavior function must take a `Message` as its last argument.
+
+Often we want the behavior functions to dispatch on messages. In the following example we define two behaviors `forward!` and `stack_node`. There are two methods for `stack_node`, for dispatching on `Push` and `Pop`. Actors can change their behavior with `become`. They can also generate other actors. For example:
 
 ```julia
 # implement behaviors
@@ -69,10 +71,12 @@ mystack = Actor(lk, stack_node, StackNode(nothing, Link()))
 
 ```@docs
 Actor
-become
 self
 send!
+become
 become!
+stop
+stop!
 ```
 
-With dispatching on messages actors can represent state machines. With `become` they can switch their behavior between different state machines or with `become!` we can cause them to switch.
+By dispatching on messages actors can represent state machines. With `become` they can switch their behavior between different state machines or `become!` can cause a switch.

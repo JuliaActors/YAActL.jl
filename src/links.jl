@@ -22,7 +22,7 @@ end
 """
     LinkParams(size=32; taskref=nothing, spawn=false)
 
-Set the parameters for setting up an [`Actor`](@ref). See also: [`Channel`](https://docs.julialang.org/en/v1/base/parallel/#Base.Channel-Tuple{Function}).
+Set the parameters for setting up an [`Actor`](@ref). 
 
 # Parameters
 - `size::Int`: channel buffer size, must be `size ≥ 10`,
@@ -30,6 +30,7 @@ Set the parameters for setting up an [`Actor`](@ref). See also: [`Channel`](http
     pass a `Ref{Task}` object via the keyword argument `taskref`.
 - `spawn::Bool`: If spawn = true, the Task created may be scheduled on another
     thread in parallel, equivalent to creating a task via `Threads.@spawn`.
+- `persistent::Bool`: if persistent = false, the 
 """
 struct LinkParams
     size::Int

@@ -1,16 +1,16 @@
 # Usage
 
-> An actor is a computational entity that, in response to a message it 
->   receives, can concurrently:
->    - send a finite number of messages to other actors;
->    - create a finite number of new actors;
->    - designate the behavior to be used for the next message it receives. [^1]
+> An actor is a computational entity that, in response to a message it receives, can concurrently:
+>
+> - send a finite number of messages to other actors;
+> - create a finite number of new actors;
+> - designate the behavior to be used for the next message it receives. [^1]
 
 `YAActL` provides a library for *messages*, *links* (message channels), *behaviors* and *actors* which enables us to implement actor systems in Julia.
 
 ## Messages
 
-Messages in `YAActL` have a common abstract type. This enables actors to [dispatch](https://docs.julialang.org/en/v1/manual/methods/#Methods-1) their behavior functions on message types. 
+Messages in `YAActL` have a common abstract type. This enables actors to [dispatch](https://docs.julialang.org/en/v1/manual/methods/#Methods-1) their behavior functions on message types.
 
 Some basic message types are for setting up the type hierarchy and for controlling the actors themselves:
 
@@ -56,7 +56,7 @@ parallel
 
 What an actor does when a message arrives, is implemented in a behavior function. A behavior function must take a `Message` as its last argument.
 
-In the following example we define two behaviors `forward!` and `stack_node`. There are two methods for `stack_node`, dispatching on `Push` and `Pop`. 
+In the following example we define two behaviors `forward!` and `stack_node`. There are two methods for `stack_node`, dispatching on `Push` and `Pop`.
 
 ```julia
 forward!(lk::L, msg::M) where {L<:Link, M<:Message} = send!(lk, msg)
@@ -74,10 +74,9 @@ end
 
 Actors change their behavior with `become`. They also can create other actors. They can send messages to themselves and other actors.
 
-
 ## Actors
 
-`Actor` starts an actor on a behavior and returns a link to it. 
+`Actor` starts an actor on a behavior and returns a link to it.
 
 ```julia
 mystack = Actor(stack_node, StackNode(nothing, Link()))
@@ -96,8 +95,8 @@ become!
 stopActor
 stopActor!
 ```
- 
-With `become` actors can switch their behavior function (e.g. between different state machines) or `become!` causes them to switch.Thereby an actor can represent state machines.
+
+With `become` actors can switch their behavior function (e.g. between different state machines) or `become!` causes them to switch.Thereby an actor can represent a state machine.
 
 ## Diagnosis
 

@@ -8,6 +8,7 @@
 Register a link `lk` to a vector of links `lks`.
 """
 register!(lks::Vector{Link}, lk::Link) = push!(lks, lk)
+register!(lks::Vector{Channel}, lk::Link) = push!(lks, lk)
 
 """
 	istaskfailed(lk::Link)

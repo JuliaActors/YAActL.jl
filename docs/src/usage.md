@@ -85,7 +85,7 @@ mystack = Actor(stack_node, StackNode(nothing, Link()))
 
 We pass the behavior function and its arguments (an empty `StackNode` but without the last `msg` argument!) to the actor.
 
-Over the returned link we can `send!` messages to it, change its behaviors with `become!` or `stop!` it.
+Over the returned link we can `send!` messages to it.
 
 ```@docs
 Actor
@@ -93,12 +93,21 @@ self
 send!
 become
 become!
-stop
-stop!
+stopActor
+stopActor!
 ```
  
-With `become` actors can switch their behavior function (e.g. between different state machines) or `become!` causes them to switch.
+With `become` actors can switch their behavior function (e.g. between different state machines) or `become!` causes them to switch.Thereby an actor can represent state machines.
 
-Therefore – at the moment – `YAActL` can represent parallel and connected nested state machines.
+## Diagnosis
+
+In order to develop actor programs, it is useful to have access to the actor tasks and eventually to their stack traces. You can `register!` an actor channel to a `Vector{Link}` in order to get access to the tasks.
+
+```@docs
+register!
+istaskfailed(::Link)
+istaskfailed(::Vector{Link})
+taskstate
+```
 
 [^1]:   See: The [Actor Model](https://en.wikipedia.org/wiki/Actor_model) on Wikipedia.

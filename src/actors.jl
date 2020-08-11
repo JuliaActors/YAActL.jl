@@ -44,6 +44,7 @@ Actor(bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N} =
 
 """
     send!(lk::Link, m::Message)
+
 Send a message `m` to an actor over a link `lk`.
 """
 function send!(lk::Link, m::M) where {M<:Message}
@@ -62,6 +63,18 @@ function send!(lk::Link, m::M) where {M<:Message}
     end
     return m
 end
+
+"""
+```
+send!(lks::Tuple{Link,Vararg{Link}}, m::M) where M<:Message
+send!(lks::Vector{Link}, m::M) where M<:Message
+```
+Send a message `m` to a `Vector` or `Tuple` of `Link`s.
+"""
+send!(lks::Tuple{Link,Vararg{Link}}, m::M) where M<:Message =
+    map(x->send!(x, m), lks)
+send!(lks::Vector{Link}, m::M) where M<:Message =
+    map(x->send!(x, m), lks)
 
 """
     become!(lk::Link, bhv::Function, args...; kwargs...)
@@ -105,7 +118,7 @@ function become(bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N}
 end
 
 "`stop()`: an actor terminates."
-stop() = send!(self(), Stop())
+stopActor() = send!(self(), Stop())
 
 "`stop!(lk::Link)`: terminate an actor with link `lk`."
-stop!(lk::Link) = send!(lk, Stop())
+stopActor!(lk::Link) = send!(lk, Stop())

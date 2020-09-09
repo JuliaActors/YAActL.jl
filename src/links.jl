@@ -25,6 +25,7 @@ end
 Set the parameters for setting up an [`Actor`](@ref). 
 
 # Parameters
+- `pid::Int`: process identification,
 - `size::Int`: channel buffer size, must be `size ≥ 10`,
 - `taskref::Union{Nothing, Ref{Task}}`: If you need a reference to the created task,
     pass a `Ref{Task}` object via the keyword argument `taskref`.
@@ -33,13 +34,14 @@ Set the parameters for setting up an [`Actor`](@ref).
 - `persistent::Bool`: if persistent = false, the 
 """
 struct LinkParams
+    pid::Int
     size::Int
     taskref::Union{Nothing, Ref{Task}}
     spawn::Bool
 
-    function LinkParams(size=32; taskref=nothing, spawn=false)
+    function LinkParams(pid=myid(), size=32; taskref=nothing, spawn=false)
         @assert size ≥ 10 "Link buffer size < 10 not allowed"
-        new(size, taskref, spawn)
+        new(pid, size, taskref, spawn)
     end
 end
 

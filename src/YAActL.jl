@@ -1,5 +1,7 @@
 module YAActL
 
+using Distributed
+
 include("types.jl")
 include("messages.jl")
 include("links.jl")

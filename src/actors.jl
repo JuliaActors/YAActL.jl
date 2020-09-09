@@ -35,19 +35,25 @@ listens to messages `msg` sent over the returned link and executes
 return a [`Link`](@ref) to the created actor, a `Channel{Message}` object.
 """
 function Actor(lp::LinkParams, bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N}
-    lk = Link(act, lp.size, taskref=lp.taskref, spawn=lp.spawn)
+    if lp.pid == myid()
+        lk = Link(act, lp.size, taskref=lp.taskref, spawn=lp.spawn)
+    else
+        lk = RemoteChannel(()->Link(act, lp.size, taskref=lp.taskref, spawn=lp.spawn), lp.pid)
+    end
     become!(lk, bhv, args..., kwargs...)
     return lk
 end
-Actor(bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N} =
+Actor(bhv::F, args...; kwargs...) where {F<:Function} =
     Actor(LinkParams(), bhv, args..., kwargs...)
+Actor(pid::Int, bhv::F, args...; kwargs...) where {F<:Function} =
+    Actor(LinkParams(pid), bhv, args..., kwargs...)
 
 """
-    send!(lk::Link, m::Message)
+    send!(lk::AbstractChannel, m::Message)
 
 Send a message `m` to an actor over a link `lk`.
 """
-function send!(lk::Link, m::M) where {M<:Message}
+function send!(lk::LK, m::M) where {LK<:AbstractChannel, M<:Message}
     # reimplements Base.put_buffered with a modification
     lock(lk)
     try
@@ -71,13 +77,13 @@ send!(lks::Vector{Link}, m::M) where M<:Message
 ```
 Send a message `m` to a `Vector` or `Tuple` of `Link`s.
 """
-send!(lks::Tuple{Link,Vararg{Link}}, m::M) where M<:Message =
+send!(lks::Tuple{Link,Vararg{LK}}, m::M) where {LK<:AbstractChannel, M<:Message} =
     map(x->send!(x, m), lks)
-send!(lks::Vector{Link}, m::M) where M<:Message =
+send!(lks::Vector{LK}, m::M) where {LK<:AbstractChannel, M<:Message} =
     map(x->send!(x, m), lks)
 
 """
-    become!(lk::Link, bhv::Function, args...; kwargs...)
+    become!(lk::AbstractChannel, bhv::Function, args...; kwargs...)
 
 Cause another actor to assume a new behavior.
 
@@ -87,7 +93,7 @@ Cause another actor to assume a new behavior.
 - `args...`: arguments to `bhv` (without `msg`),
 - `kwargs...`: keyword arguments to `bhv`.
 """
-become!(lk::Link, bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N} =
+become!(lk::LK, bhv::F, args::Vararg{Any, N}; kwargs...) where {LK<:AbstractChannel, F<:Function,N} =
     send!(lk, Become(bhv, args, kwargs))
 
 """
@@ -120,5 +126,5 @@ end
 "`stop()`: an actor terminates."
 stopActor() = send!(self(), Stop())
 
-"`stop!(lk::Link)`: terminate an actor with link `lk`."
-stopActor!(lk::Link) = send!(lk, Stop())
+"`stop!(lk::AbstractChannel)`: terminate an actor with link `lk`."
+stopActor!(lk::LK) where LK<:AbstractChannel = send!(lk, Stop())

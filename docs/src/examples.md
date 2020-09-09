@@ -45,7 +45,7 @@ end
 Then we create the top of the stack (the receptionist). All other actors of the system are created internally each time we send a `Push` message. We interact only with the top of the stack:
 
 ```julia
-julia> mystack = Actor(lk, stack_node, StackNode(nothing, Link()))
+julia> mystack = Actor(stack_node, StackNode(nothing, Link()))
 Channel{Message}(sz_max:32,sz_curr:0)
 
 julia> response = newLink()           # create a response link

@@ -1,6 +1,6 @@
 # Usage
 
-> An actor is a computational entity that, in response to a message it receives, can concurrently:
+> An Actor is a computational entity that, in response to a message it receives, can concurrently:
 >
 > - send a finite number of messages to other actors;
 > - create a finite number of new actors;
@@ -43,7 +43,7 @@ With dispatch on message types we can easily implement state machines.
 
 ## Links
 
-We send messages to actors and actors can send them to others over links. In fact, an actor is only represented by its link. If we want a response from an actor, we must send it our own link together with a request message.
+We send messages to actors and they can send them to others over links. In fact, an actor is only represented by its link. If we want a response from an actor, we must send it our own link together with a request message.
 
 ```@docs
 Link
@@ -54,7 +54,7 @@ parallel
 
 ## Behaviors
 
-What an actor does when a message arrives, is implemented in a behavior function. A behavior function must take a `Message` as its last argument.
+When a message arrives, the actor executes a behavior function on it. Therefore the behavior function must take a `Message` as its last argument.
 
 In the following example we define two behaviors `forward!` and `stack_node`. There are two methods for `stack_node`, dispatching on `Push` and `Pop`.
 

@@ -12,7 +12,7 @@
 
 ## Quick Intro
 
-An [`Actor`](@ref) reads a [`Message`](@ref) from a [`Link`](@ref) and passes it to a function implementing his behavior. He can change his behavior with [`become`](@ref). Basically we have to define the messages and to implement the behaviors.
+An [`Actor`](@ref) reads a [`Message`](@ref) from a [`Link`](@ref) and passes it to a function implementing its behavior. It can change the behavior with [`become`](@ref). To setup an actor system you need to define messages and to implement some behaviors:
 
 ```julia
 using YAActL, Printf
@@ -21,7 +21,7 @@ struct Print <: Message        # define a message
     txt::String
 end
 
-# define two behaviors accepting a msg::Message as their last argument
+# define two behaviors accepting a message as their last argument
 function pr(msg::Print)
     print(@sprintf("%s\n", msg.txt))
     become(pr, "Next") # change behaviour
@@ -49,7 +49,7 @@ New behavior: bla bla bla
 
 ## Why YAActl?
 
-I could not find a suitable actor library for implementing reactive state machines in [`DiscreteEvents`](https://github.com/pbayer/DiscreteEvents.jl) and [`StateMachines`](https://github.com/pbayer/StateMachines.jl). So I am writing my own. Likewise it helps me to learn the actor concept. Please join me to develop it.
+I could not find a suitable actor library for implementing reactive state machines in [`DiscreteEvents`](https://github.com/pbayer/DiscreteEvents.jl) and [`StateMachines`](https://github.com/pbayer/StateMachines.jl). So I am writing my own. Likewise it helps me to learn the Actor concept. Please join me to develop it.
 
 ## References
 

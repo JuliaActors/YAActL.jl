@@ -3,8 +3,8 @@
 #
 using YAActL, Printf
 
-t = Ref{Task}()                # this is for debugging
-lk = LinkParams(taskref=t)
+# t = Ref{Task}()                # this is for debugging
+# lk = LinkParams(taskref=t)
 
 mutable struct StackNode{T}
     content::T
@@ -40,7 +40,8 @@ function stack_node(sn::StackNode, msg::Print)  # for debugging
     isnothing(sn.content) || send!(sn.link, msg)
 end
 
-mystack = Actor(lk, stack_node, StackNode(nothing, Link()))
+# mystack = Actor(lk, stack_node, StackNode(nothing, Link()))
+mystack = Actor(stack_node, StackNode(nothing, Link()))
 
 response = newLink()
 

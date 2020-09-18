@@ -7,8 +7,13 @@ makedocs(
     authors  = "Paul Bayer",
     pages = [
             "index.md",
-            "usage.md",
-            "examples.md"
+            "setup.md",
+            "actors.md",
+            "links.md",
+            "messages.md",
+            "behavior.md",
+            "examples.md",
+            "diagnosis.md"
     ]
 )
 

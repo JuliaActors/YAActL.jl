@@ -4,12 +4,6 @@
 
 `YAActL` is in early development. It uses native Julia tasks and channels to implement actors.
 
-## Installation
-
-```julia
-] add "https://github.com/pbayer/YAActL.jl"
-```
-
 ## Quick Intro
 
 An [`Actor`](@ref) reads a [`Message`](@ref) from a [`Link`](@ref) and passes it to a function implementing its behavior. It can change the behavior with [`become`](@ref). To setup an actor system you need to define messages and to implement some behaviors:
@@ -49,7 +43,7 @@ New behavior: bla bla bla
 
 ## Why YAActl?
 
-I could not find a suitable actor library for implementing reactive state machines in [`DiscreteEvents`](https://github.com/pbayer/DiscreteEvents.jl) and [`StateMachines`](https://github.com/pbayer/StateMachines.jl). So I am writing my own. Likewise it helps me to learn the Actor concept. Please join me to develop it.
+I could not find a suitable actor library for implementing reactive state machines in Julia. So I am writing one. Please join me to develop it.
 
 ## References
 

@@ -1,5 +1,7 @@
 #
-# This is part of YAActL.jl, 2020, P.Bayer, License MIT
+# This file is part of the YAActL.jl Julia package, MIT license
+#
+# Paul Bayer, 2020
 #
 
 """

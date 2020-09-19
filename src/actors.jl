@@ -131,8 +131,8 @@ function become(bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N}
     end
 end
 
-"`stop()`: an actor terminates."
+"`stopActor()`: an actor terminates."
 stopActor() = send!(self(), Stop())
 
-"`stop!(lk::LINK)`: terminate an actor with link `lk`."
+"`stopActor!(lk::LINK)`: terminate an actor with link `lk`."
 stopActor!(lk::LK) where LK<:LINK = send!(lk, Stop())

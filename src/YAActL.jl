@@ -3,8 +3,6 @@
 #
 # Paul Bayer, 2020
 #
-# It implements the Actor-model
-#
 
 """
     YAActL

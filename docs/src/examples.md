@@ -1,6 +1,6 @@
 # Examples
 
-## A Stack
+## [A Stack](@id stack_example)
 
 This is Agha's example 3.2.1. It implements a stack as a collection of actors with two operations/messages `Push` and `Pop`. A `StackNode` stores a content and a [`Link`](@ref) to the next [`Actor`](@ref) in the chain.
 
@@ -78,7 +78,7 @@ Response{Int64}(2)
 Response{Int64}(1)
 ```
 
-## A Recursive Factorial
+## [A Recursive Factorial](@id factorial_example)
 
 This is Agha's example 3.2.2:
 

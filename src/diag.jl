@@ -1,5 +1,7 @@
 #
-# This is part of YAActL.jl, 2020, P.Bayer, License MIT
+# This file is part of the YAActL.jl Julia package, MIT license
+#
+# Paul Bayer, 2020
 #
 
 """
@@ -35,6 +37,6 @@ function taskstate(lk::Link)
 	if istaskfailed(lk)
 		return lk.excp.task
 	else
-		return lk.cond_take.waitq.head.donenotify.waitq.head.code.task
+		return lk.cond_take.waitq.head.donenotify.waitq.head.code.task.state
 	end
 end

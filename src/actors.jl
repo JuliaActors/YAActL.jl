@@ -1,5 +1,7 @@
 #
-# This is part of YAActL.jl, 2020, P.Bayer, License MIT
+# This file is part of the YAActL.jl Julia package, MIT license
+#
+# Paul Bayer, 2020
 #
 
 # implements the actor loop
@@ -21,6 +23,7 @@ end
 """
 ```
 Actor([lp::LinkParams], bhv::Function, args...; kwargs...)
+Actor(pid::Int, bhv::Function, args...; kwargs...)
 ```
 Create a new actor. Start a task executing repeatedly the behavior `bhv`. The actor
 listens to messages `msg` sent over the returned link and executes
@@ -28,26 +31,35 @@ listens to messages `msg` sent over the returned link and executes
 
 # Arguments
 - `[lp::LinkParams]`: optional parameters for creating the actor,
+- `pid::Int`: create the actor on process `pid`,
 - `bhv::Function`: function implementing the actor's behavior,
 - `args...`: arguments to `bhv`, (without `msg`)
 - `kwargs...`: keyword arguments to `bhv`.
 
-return a [`Link`](@ref) to the created actor, a `Channel{Message}` object.
+# Returns
+- a [`Link`](@ref) to a locally created actor or 
+- an [`RLink`](@ref) to a remote actor.
 """
 function Actor(lp::LinkParams, bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N}
-    lk = Link(act, lp.size, taskref=lp.taskref, spawn=lp.spawn)
+    if lp.pid == myid()
+        lk = Link(act, lp.size, taskref=lp.taskref, spawn=lp.spawn)
+    else
+        lk = RemoteChannel(()->Link(act, lp.size, taskref=lp.taskref, spawn=lp.spawn), lp.pid)
+    end
     become!(lk, bhv, args..., kwargs...)
     return lk
 end
-Actor(bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N} =
+Actor(bhv::F, args...; kwargs...) where {F<:Function} =
     Actor(LinkParams(), bhv, args..., kwargs...)
+Actor(pid::Int, bhv::F, args...; kwargs...) where {F<:Function} =
+    Actor(LinkParams(pid), bhv, args..., kwargs...)
 
 """
-    send!(lk::Link, m::Message)
+    send!(lk::LINK, m::Message)
 
-Send a message `m` to an actor over a link `lk`.
+Send a message `m` to an actor over a [`LINK`](@ref) `lk`.
 """
-function send!(lk::Link, m::M) where {M<:Message}
+function send!(lk::Link, m::M) where M<:Message
     # reimplements Base.put_buffered with a modification
     lock(lk)
     try
@@ -63,21 +75,22 @@ function send!(lk::Link, m::M) where {M<:Message}
     end
     return m
 end
+send!(lk::RLink, m::M) where M<:Message = put!(lk, m)
 
 """
 ```
-send!(lks::Tuple{Link,Vararg{Link}}, m::M) where M<:Message
-send!(lks::Vector{Link}, m::M) where M<:Message
+send!(lks::Tuple{LINK,Vararg{LINK}}, m::M) where M<:Message
+send!(lks::Vector{LINK}, m::M) where M<:Message
 ```
-Send a message `m` to a `Vector` or `Tuple` of `Link`s.
+Send a message `m` to a `Vector` or `Tuple` of [`LINK`](@ref)s.
 """
-send!(lks::Tuple{Link,Vararg{Link}}, m::M) where M<:Message =
+send!(lks::Tuple{LINK,Vararg{LINK}}, m::M) where M<:Message =
     map(x->send!(x, m), lks)
-send!(lks::Vector{Link}, m::M) where M<:Message =
+send!(lks::Vector{LINK}, m::M) where M<:Message =
     map(x->send!(x, m), lks)
 
 """
-    become!(lk::Link, bhv::Function, args...; kwargs...)
+    become!(lk::LINK, bhv::Function, args...; kwargs...)
 
 Cause another actor to assume a new behavior.
 
@@ -87,12 +100,13 @@ Cause another actor to assume a new behavior.
 - `args...`: arguments to `bhv` (without `msg`),
 - `kwargs...`: keyword arguments to `bhv`.
 """
-become!(lk::Link, bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N} =
+become!(lk::LK, bhv::F, args::Vararg{Any, N}; kwargs...) where {LK<:LINK, F<:Function,N} =
     send!(lk, Become(bhv, args, kwargs))
 
 """
     self()
-Get a [`Link`](@ref) to yourself from inside an actor.
+
+Get a local [`Link`](@ref) to yourself from inside an actor.
 """
 self() = current_task().code.chnl :: Link
 
@@ -117,8 +131,8 @@ function become(bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N}
     end
 end
 
-"`stop()`: an actor terminates."
+"`stopActor()`: an actor terminates."
 stopActor() = send!(self(), Stop())
 
-"`stop!(lk::Link)`: terminate an actor with link `lk`."
-stopActor!(lk::Link) = send!(lk, Stop())
+"`stopActor!(lk::LINK)`: terminate an actor with link `lk`."
+stopActor!(lk::LK) where LK<:LINK = send!(lk, Stop())

@@ -1,5 +1,9 @@
 #
-# This is part of YAActL.jl, 2020, P.Bayer, License MIT
+# This file is part of the YAActL.jl Julia package, MIT license
+#
+# Paul Bayer, 2020
+#
+# It implements the Actor-model
 #
 
 """
@@ -25,6 +29,7 @@ end
 Set the parameters for setting up an [`Actor`](@ref). 
 
 # Parameters
+- `pid::Int`: process identification,
 - `size::Int`: channel buffer size, must be `size ≥ 10`,
 - `taskref::Union{Nothing, Ref{Task}}`: If you need a reference to the created task,
     pass a `Ref{Task}` object via the keyword argument `taskref`.
@@ -33,13 +38,14 @@ Set the parameters for setting up an [`Actor`](@ref).
 - `persistent::Bool`: if persistent = false, the 
 """
 struct LinkParams
+    pid::Int
     size::Int
     taskref::Union{Nothing, Ref{Task}}
     spawn::Bool
 
-    function LinkParams(size=32; taskref=nothing, spawn=false)
+    function LinkParams(pid=myid(), size=32; taskref=nothing, spawn=false)
         @assert size ≥ 10 "Link buffer size < 10 not allowed"
-        new(size, taskref, spawn)
+        new(pid, size, taskref, spawn)
     end
 end
 
@@ -48,4 +54,7 @@ end
 
 Return [`LinkParams`](@ref) with `spawn=true`.
 """
-parallel(size=32; taskref=nothing) = LinkParams(size, taskref=taskref, spawn=true)
+parallel(size=32; taskref=nothing) = LinkParams(myid(), size, taskref=taskref, spawn=true)
+
+"User channel for interacting with actors."
+const USR = RemoteChannel(()->newLink())

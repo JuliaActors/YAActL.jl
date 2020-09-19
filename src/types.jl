@@ -1,11 +1,14 @@
 #
-# This is part of YAActL.jl, 2020, P.Bayer, License MIT
+# This file is part of the YAActL.jl Julia package, MIT license
 #
+# Paul Bayer, 2020
+#
+
 "Abstract type for messages to actors."
 abstract type Message end
 
 """
-A `Channel{Message}` type for communicating with actors.
+A `Channel{Message}` type for communicating with local actors.
 
 !!! warn
 
@@ -22,3 +25,16 @@ Channel{Message}(sz_max:32,sz_curr:0)
 ```
 """
 const Link = Channel{Message}
+
+"""
+A `RemoteChannel{Link}` type for communicating with remote actors.
+"""
+const RLink = RemoteChannel{Link}
+
+"""
+A `Union{Link, RLink}` type for communicating with actors. 
+"""
+const LINK = Union{Link, RLink}
+
+# define promote rule
+Base.promote_rule(::Type{Link}, ::Type{RLink}) = LINK

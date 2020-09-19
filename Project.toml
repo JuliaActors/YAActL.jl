@@ -1,14 +1,20 @@
 name = "YAActL"
 uuid = "4c422213-1242-4325-9ff2-ab065d5354a7"
 authors = ["Paul Bayer"]
-version = "0.1.0"
+version = "0.1.1"
+
+[deps]
+Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [compat]
 julia = "1.5"
 
 [extras]
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Documenter", "Test"]
+test = ["Pkg", "Documenter", "Test", "SafeTestsets", "Printf"]

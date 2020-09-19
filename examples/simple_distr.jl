@@ -1,5 +1,5 @@
 using Distributed
-addprocs(2)
+length(procs()) == 1 && addprocs(1)
 
 @everywhere using Pkg
 @everywhere Pkg.activate(".")
@@ -23,11 +23,11 @@ addprocs(2)
     end
 end
 
-t = Ref{Task}()                # this is for debugging
-lk = LinkParams(2, taskref=t)
+# t = Ref{Task}()                # this is for debugging
+# lk = LinkParams(2, taskref=t)
 
 # start an actor with the first behavior and save the returned link
-myactor = Actor(2, pr)
+myactor = Actor(workers()[1], pr)
 
 send!(myactor, PM("My first actor"))  # send a message to it
 

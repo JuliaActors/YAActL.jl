@@ -6,9 +6,9 @@ using YAActL
 # implement the behaviors
 function rec_factorial(f::Request)
     if f.x == 0
-        send!(f.u, Response(1))
+        send!(f.lk, Response(1))
     else
-        c = Actor(parallel(), rec_customer, f.x, f.u) # setup parallel actors
+        c = Actor(parallel(), rec_customer, f.x, f.lk) # setup parallel actors
         send!(self(), Request(f.x - 1, c))
     end
 end

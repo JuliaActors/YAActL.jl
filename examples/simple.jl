@@ -1,8 +1,5 @@
 using YAActL, Printf
 
-# t = Ref{Task}()                # this is for debugging
-# lk = LinkParams(taskref=t)
-
 struct Prt <: Message        # define a message
     txt::String
 end
@@ -26,12 +23,12 @@ send!(myactor, Prt("My first actor"))  # send a message to it
 
 send!(myactor, Prt("Something else"))  # send again a message
 
-become!(myactor, pr, "New behavior")     # change the behavior to another one
+become!(myactor, pr, "New behavior")   # change the behavior to another one
 
 send!(myactor, Prt("bla bla bla"))     # and send again a message
 
-become!(myactor, calc, +, 10)
+become!(myactor, calc, +, 10);         # now become a adding machine
 
-send!(myactor, Request(5, USR))
+send!(myactor, Request(5, USR));       # send a request to add 5
 
-take!(USR)
+take!(USR)                             # take the result

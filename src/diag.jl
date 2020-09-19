@@ -37,6 +37,6 @@ function taskstate(lk::Link)
 	if istaskfailed(lk)
 		return lk.excp.task
 	else
-		return lk.cond_take.waitq.head.donenotify.waitq.head.code.task
+		return lk.cond_take.waitq.head.donenotify.waitq.head.code.task.state
 	end
 end

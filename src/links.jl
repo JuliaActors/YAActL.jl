@@ -54,7 +54,7 @@ end
 
 Return [`LinkParams`](@ref) with `spawn=true`.
 """
-parallel(size=32; taskref=nothing) = LinkParams(size, taskref=taskref, spawn=true)
+parallel(size=32; taskref=nothing) = LinkParams(myid(), size, taskref=taskref, spawn=true)
 
 "User channel for interacting with actors."
 const USR = RemoteChannel(()->newLink())

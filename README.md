@@ -59,3 +59,13 @@ julia> send!(myactor, Request(5, USR));       # send a request to add 5
 julia> take!(USR)                             # take the result
 Response{Int64}(15)
 ```
+
+## Rationale
+
+1. Actors are exciting.
+2. Actors are needed for parallel computing.
+3. There is no [actor library](https://en.wikipedia.org/wiki/Actor_model#Actor_libraries_and_frameworks) in Julia. 
+4. Building on Julia's existing strengths it is possible to condense the actor-concept into a tiny smart and fast library.
+5. A community effort is needed to do it.
+
+If you agree with those points, please join `YAActL`'s development.

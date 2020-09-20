@@ -1,6 +1,6 @@
 # YAActL.jl
 
-*Yet another Actor Library* (in Julia)
+*Yet another Actor Library* (but in Julia)
 
 [![stable docs](https://img.shields.io/badge/docs-stable-blue.svg)](https://pbayer.github.io/YAActL.jl/stable/)
 [![dev docs](https://img.shields.io/badge/docs-dev-blue.svg)](https://pbayer.github.io/YAActL.jl/dev)

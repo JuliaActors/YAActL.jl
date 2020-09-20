@@ -1,6 +1,6 @@
 # YAActL.jl
 
-*Yet Another Actor Library* (in Julia)
+*Yet Another Actor Library* (but in Julia)
 
 `YAActL` aims to be a tiny smart actor library for parallel and distributed computing. It is in early development and uses native Julia tasks and channels to implement actors.
 
@@ -57,9 +57,15 @@ julia> take!(USR)                             # take the result
 Response{Int64}(15)
 ```
 
-## Why YAActl?
+## Rationale
 
-I could not find a suitable actor library for implementing reactive state machines in Julia. So I am writing one. Please join me to develop it.
+1. Actors are exciting.
+2. Actors are needed for parallel computing.
+3. There is no [actor library](https://en.wikipedia.org/wiki/Actor_model#Actor_libraries_and_frameworks) in Julia. 
+4. Building on Julia's existing strengths it is possible to condense the actor-concept into a tiny smart and fast library.
+5. A community effort is needed to do it.
+
+If you agree with those points, please join `YAActL`'s development.
 
 ## References
 

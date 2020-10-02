@@ -1,6 +1,6 @@
 # YAActL.jl
 
-*Yet another Actor Library* (but in Julia)
+*Yet another Actor Library* (built in Julia)
 
 [![stable docs](https://img.shields.io/badge/docs-stable-blue.svg)](https://pbayer.github.io/YAActL.jl/stable/)
 [![dev docs](https://img.shields.io/badge/docs-dev-blue.svg)](https://pbayer.github.io/YAActL.jl/dev)
@@ -9,7 +9,7 @@
 [![Coverage](https://codecov.io/gh/pbayer/YAActL.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/pbayer/YAActL.jl)
 [![Coverage](https://coveralls.io/repos/github/pbayer/YAActL.jl/badge.svg?branch=master)](https://coveralls.io/github/pbayer/YAActL.jl?branch=master)
 
-`YAActL` aims to be a tiny smart actor library for parallel and distributed computing. It is in early development and uses native Julia tasks and channels to implement actors.
+`YAActL` aims to be a smart actor library for parallel and distributed computing. It builds on Julia's multiple dispatch and uses tasks and channels to implement actors.
 
 ```julia
 using YAActL, Printf
@@ -27,7 +27,7 @@ pr(info, msg::Prt) = print(@sprintf("%s: %s\n", info, msg.txt))
 
 # a behavior for doing arithmetic
 function calc(op::F, v::U, msg::Request) where {F<:Function,U<:Number}
-    send!(msg.lk, Response(op(v,msg.x)))
+    send!(msg.from, Response(op(v,msg.x)))
 end
 
 # start an actor with the first behavior and save the returned link
@@ -52,7 +52,7 @@ New behavior: bla bla bla
 Our actor can also change to a completely different behavior and do some arithmetic:
 
 ```julia
-julia> become!(myactor, calc, +, 10);         # now become a adding machine
+julia> become!(myactor, calc, +, 10);         # now become a machine for adding to 10
 
 julia> send!(myactor, Request(5, USR));       # send a request to add 5
 

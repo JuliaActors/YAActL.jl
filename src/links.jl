@@ -58,3 +58,7 @@ parallel(size=32; taskref=nothing) = LinkParams(myid(), size, taskref=taskref, s
 
 "User channel for interacting with actors."
 const USR = RemoteChannel(()->newLink())
+
+# Get a local link to yourself from inside an actor.
+_self() = current_task().code.chnl :: Link
+    

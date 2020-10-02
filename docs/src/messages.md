@@ -1,32 +1,41 @@
 # Messages
 
-Messages in `YAActL` have a common abstract type. This enables actors to [dispatch](https://docs.julialang.org/en/v1/manual/methods/#Methods-1) their behavior functions on message types.
+```@meta
+CurrentModule = YAActL
+```
 
-Some basic message types are for setting up the type hierarchy and for controlling the actors themselves:
+Messages in `YAActL` have [`Message`](@ref) as a common abstract type. Only two predefined messages are exported:
+
+- [`Response`](@ref): response message type from actor to any synchronous message (requiring a response),
+- [`Request`](@ref): predefined message type for implementing requests to actors.
+
+Messages other than the predefined ones can be implemented by a user.
+
+## Sending Functions and Arguments
+
+There are two predefined types for messages with functions and function arguments:
 
 ```@docs
-Message
+Func
+Args
+```
+
+## Internal Messages
+
+Actors recognize and react to the following predefined messages:
+
+```@docs
+Become
+Call
+Cast
+Diag
+Get
+Init
+Query
+Set
 Stop
-YAActL.Become
+Term
+Update
 ```
 
-The following message types are for executing and dispatching standard behaviors:
-
-```@docs
-Request
-Response
-```
-
-Other message types can be implemented by the user, for example:
-
-```julia
-struct Pop <: Message
-    customer::Link
-end
-
-struct Push{T} <: Message
-    content::T
-end
-```
-
-With dispatch on message types we can easily implement state machines.
+If an actor receives another subtype of `Message`, it calls its behavior function with it as last argument.

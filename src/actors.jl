@@ -4,17 +4,91 @@
 # Paul Bayer, 2020
 #
 
+"""
+    _ACT(lk::LINK)
+
+Internal actor status variable.
+
+# Fields
+
+1. `dsp::Dispatch`: dispatch mode,
+2. `sta::Tuple`: the actor's status variable,
+3. `res::Tuple`: the result of the last behavior execution,
+4. `bhv::Func` : the behavior function and its internal arguments,
+5. `init::Func`: the init function and its arguments,
+6. `term::Func`: the terminate function and its arguments,
+7. `link::LINK`: the actors (local or remote) link.
+
+see also: [`Dispatch`](@ref), [`Func`](@ref), [`LINK`](@ref)
+"""
+mutable struct _ACT
+    dsp::Dispatch   
+    sta::Tuple
+    res::Tuple
+    bhv::Func
+    init::Union{Nothing,Func}
+    term::Union{Nothing,Func}
+    link::LINK
+
+    _ACT(lk::LK) where LK<:LINK = 
+        new(full, (), (), Func(), nothing, nothing, lk)
+end
+
+# update methods
+_update(A::_ACT, args...) = A.sta = args
+function _update(A::_ACT, args::Args)
+    A.bhv = Func(A.bhv.f, args.args...;
+        pairs((; merge(A.bhv.kwargs, args.kwargs)...))...)
+end
+
+# actor dispatch on messages
+_act(A::_ACT, msg::Set)    = _act(A, msg, msg.x)
+_act(A::_ACT, msg::Become) = A.bhv = msg.x
+_act(A::_ACT, msg::Update) = _update(A, msg.x...)
+_act(A::_ACT, msg::Get)    = send!(msg.from, Response(A.sta, A.link))
+_act(A::_ACT, msg::Diag)   = send!(msg.from, Response(A, A.link))
+_act(A::_ACT, msg::M) where M<:Message = _act(A, Val(A.dsp), msg)
+
+# dispatch on Set message
+_act(A::_ACT, ::Set, dsp::Dispatch) = A.dsp = dsp
+_act(A::_ACT, ::Set, lk::LK) where LK<:LINK = A.link = lk
+
+_tuple(x) = applicable(length, x) ? Tuple(x) : (x,)
+
+# dispatch on Call message
+function _act(A::_ACT, ::Val{full}, msg::Call)
+    A.res = _tuple(A.bhv.f((A.bhv.args..., msg.x...)...; A.bhv.kwargs...))
+    send!(msg.from, Response(A.res, A.link))
+end
+function _act(A::_ACT, ::Val{state}, msg::Call)
+    A.sta = A.res = _tuple(A.bhv.f((A.sta..., msg.x...)...; A.bhv.kwargs...))
+    send!(msg.from, Response(A.sta, A.link))
+end
+# dispatch on Cast message
+function _act(A::_ACT, ::Val{full},  msg::Cast) 
+    A.res = _tuple(A.bhv.f((A.bhv.args..., msg.x...)...; A.bhv.kwargs...))
+end
+function _act(A::_ACT, ::Val{state}, msg::Cast) 
+    A.sta = A.res = _tuple(A.bhv.f((A.sta..., msg.x...)...; A.bhv.kwargs...))
+end
+# dispatch on other user defined messages
+function _act(A::_ACT, ::Val{full}, msg::M) where M<:Message
+    A.res = _tuple(A.bhv.f((A.bhv.args..., msg)...; A.bhv.kwargs...))
+end
+function _act(A::_ACT, ::Val{state}, msg::M) where M<:Message
+    A.sta = A.res = _tuple(A.bhv.f((A.sta..., msg)...; A.bhv.kwargs...))
+end
+
 # implements the actor loop
-function act(lk::Link)
-    B = Become(+,(),Base.Iterators.pairs(()))
+function _act(lk::Link)
+    A = _ACT(lk)
+    task_local_storage("ACT",A)
     while true
         msg = take!(lk)
-        if msg isa Become
-            B = msg
-        elseif msg isa Stop
+        if msg isa Stop
             break
         else
-            B.f((B.args..., msg)..., B.kwargs...)
+            _act(A, msg)
         end
         yield()
     end
@@ -42,11 +116,12 @@ listens to messages `msg` sent over the returned link and executes
 """
 function Actor(lp::LinkParams, bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N}
     if lp.pid == myid()
-        lk = Link(act, lp.size, taskref=lp.taskref, spawn=lp.spawn)
+        lk = Link(_act, lp.size, taskref=lp.taskref, spawn=lp.spawn)
     else
-        lk = RemoteChannel(()->Link(act, lp.size, taskref=lp.taskref, spawn=lp.spawn), lp.pid)
+        lk = RemoteChannel(()->Link(_act, lp.size, taskref=lp.taskref, spawn=lp.spawn), lp.pid)
+        set!(lk) # set its link entry to remote
     end
-    become!(lk, bhv, args..., kwargs...)
+    become!(lk, bhv, args...; kwargs...)
     return lk
 end
 Actor(bhv::F, args...; kwargs...) where {F<:Function} =
@@ -55,65 +130,10 @@ Actor(pid::Int, bhv::F, args...; kwargs...) where {F<:Function} =
     Actor(LinkParams(pid), bhv, args..., kwargs...)
 
 """
-    send!(lk::LINK, m::Message)
-
-Send a message `m` to an actor over a [`LINK`](@ref) `lk`.
-"""
-function send!(lk::Link, m::M) where M<:Message
-    # reimplements Base.put_buffered with a modification
-    lock(lk)
-    try
-        while length(lk.data) ≥ lk.sz_max  # modification: allow buffer overflow
-            Base.check_channel_state(lk)
-            wait(lk.cond_put)
-        end
-        push!(lk.data, m)
-        # notify all, since some of the waiters may be on a "fetch" call.
-        notify(lk.cond_take, nothing, true, false)
-    finally
-        unlock(lk)
-    end
-    return m
-end
-send!(lk::RLink, m::M) where M<:Message = put!(lk, m)
-
-"""
-```
-send!(lks::Tuple{LINK,Vararg{LINK}}, m::M) where M<:Message
-send!(lks::Vector{LINK}, m::M) where M<:Message
-```
-Send a message `m` to a `Vector` or `Tuple` of [`LINK`](@ref)s.
-"""
-send!(lks::Tuple{LINK,Vararg{LINK}}, m::M) where M<:Message =
-    map(x->send!(x, m), lks)
-send!(lks::Vector{LINK}, m::M) where M<:Message =
-    map(x->send!(x, m), lks)
-
-"""
-    become!(lk::LINK, bhv::Function, args...; kwargs...)
-
-Cause another actor to assume a new behavior.
-
-# Arguments
-- `lk::Link`: Link to an actor,
-- `bhv::Function`: function implementing the new behavior,
-- `args...`: arguments to `bhv` (without `msg`),
-- `kwargs...`: keyword arguments to `bhv`.
-"""
-become!(lk::LK, bhv::F, args::Vararg{Any, N}; kwargs...) where {LK<:LINK, F<:Function,N} =
-    send!(lk, Become(bhv, args, kwargs))
-
-"""
-    self()
-
-Get a local [`Link`](@ref) to yourself from inside an actor.
-"""
-self() = current_task().code.chnl :: Link
-
-"""
     become(bhv::Function, args...; kwargs...)
 
-Cause yourself to take on a new behavior. Called from inside an actor/behavior.
+Cause your actor to take on a new behavior. This can only be
+called from inside an actor/behavior.
 
 # Arguments
 - `bhv::Function`: function implementing the new behavior,
@@ -121,18 +141,9 @@ Cause yourself to take on a new behavior. Called from inside an actor/behavior.
 - `kwargs...`: keyword arguments to `bhv`.
 """
 function become(bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N}
-    lk = self()
-    lock(lk)
-    try
-        Base.check_channel_state(lk)
-        pushfirst!(lk.data, Become(bhv, args, kwargs))
-    finally
-        unlock(lk)
-    end
+    act = task_local_storage("ACT")
+    act.bhv = Func(bhv, args...; kwargs...)
 end
 
 "`stopActor()`: an actor terminates."
-stopActor() = send!(self(), Stop())
-
-"`stopActor!(lk::LINK)`: terminate an actor with link `lk`."
-stopActor!(lk::LK) where LK<:LINK = send!(lk, Stop())
+stopActor() = send!(_self(), Stop())

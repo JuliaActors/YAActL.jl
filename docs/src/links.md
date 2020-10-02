@@ -6,13 +6,11 @@ We send messages to actors and they can send them to others over links. In fact,
 Link
 RLink
 LINK
-send!
 ```
 
-Actors correspond with other actors over links. If we want a response from an actor, we must send it our own link together with a request message.
+Actors correspond with other actors over links. There is a default link for users to communicate with actors.
 
 ```@docs
-self()
 USR
 ```
 

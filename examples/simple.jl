@@ -13,7 +13,7 @@ pr(info, msg::Prt) = print(@sprintf("%s: %s\n", info, msg.txt))
 
 # a behavior for doing arithmetic
 function calc(op::F, v::U, msg::Request) where {F<:Function,U<:Number}
-    send!(msg.lk, Response(op(v,msg.x)))
+    send!(msg.from, Response(op(v,msg.x)))
 end
 
 # start an actor with the first behavior and save the returned link

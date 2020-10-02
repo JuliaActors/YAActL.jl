@@ -19,7 +19,7 @@ length(procs()) == 1 && addprocs(1)
 
     # a behavior for doing arithmetic
     function calc(op::F, v::U, msg::Request) where {F<:Function,U<:Number}
-        send!(msg.lk, Response(op(v,msg.x)))
+        send!(msg.from, Response(op(v,msg.x)))
     end
 end
 

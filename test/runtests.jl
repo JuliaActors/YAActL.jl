@@ -18,6 +18,8 @@ length(procs()) == 1 && addprocs(1)
 
 @safetestset "Basics"        begin include("test_basics.jl") end
 @testset "Actors"            begin include("test_actors.jl") end
+@safetestset "Communication" begin include("test_com.jl") end
+@safetestset "API"           begin include("test_api.jl") end
 
 println("running examples, output suppressed!")
 redirect_devnull() do

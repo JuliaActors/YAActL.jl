@@ -40,3 +40,11 @@ function taskstate(lk::Link)
 		return lk.cond_take.waitq.head.donenotify.waitq.head.code.task.state
 	end
 end
+
+"""
+	diag(lk::LINK)
+
+Return the internal `_ACT` variable of the `lk` actor.
+This is only for diagnosis and testing.
+"""
+diag(lk::LK) where LK<:LINK = request!(lk, Diag)

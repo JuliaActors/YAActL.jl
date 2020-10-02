@@ -22,19 +22,25 @@ pkg> add("https://github.com/pbayer/YAActL.jl")
 module YAActL
 
 "Gives the package version."
-const version = v"0.1.1"
+const version = v"0.1.2"
 
 using Distributed
 
 include("types.jl")
 include("messages.jl")
 include("links.jl")
+include("com.jl")
 include("actors.jl")
+include("api.jl")
 include("diag.jl")
 
-export  Message, Request, Response, Stop,
+export  Message, Response, Request, Timeout, Func, Args,
         Link, RLink, LINK, newLink, LinkParams, parallel, USR,
-        Actor, self, send!, become!, become, stopActor!, stopActor,
+        send!, request!, receive!,
+        Actor, become, stopActor,  
+        Dispatch, full, state,
+        become!, call!, cast!, get, init!, query,
+        self, set!, stopActor!, terminate!, update!, 
         register!, taskstate
 
 end

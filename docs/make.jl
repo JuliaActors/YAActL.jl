@@ -6,14 +6,21 @@ makedocs(
     sitename = "YAActL.jl",
     authors  = "Paul Bayer",
     pages = [
-            "index.md",
+        "Home" => "index.md",
+        "Introduction" => "intro.md",
+        "Manual" => [
             "setup.md",
             "actors.md",
             "links.md",
-            "messages.md",
             "behavior.md",
-            "examples.md",
-            "diagnosis.md"
+            "patterns.md"],
+        "Examples" => [
+            "examples/stack.md",
+            "examples/factorial.md"],
+        "Internals" => [
+            "messages.md",
+            "internals.md",
+            "diagnosis.md"]
     ]
 )
 

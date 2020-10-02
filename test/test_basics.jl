@@ -4,7 +4,7 @@
 # Paul Bayer, 2020
 #
 
-using YAActL
+using YAActL, Test
 
 @test promote_type(Link, RLink) == LINK
 
@@ -28,12 +28,18 @@ fail(msg::Incr) = undefined
 A = Actor(lp, inca)
 @test A isa Link
 @test t[].state == :runnable
+act = YAActL.diag(A)
+@test act.link == A
+@test act.bhv.f == inca
+
 send!(A, Incr(10))
-sleep(0.01)
-@test a[1] == 10
-send!(A, Decr(5))
-send!(A, Decr(5))
 sleep(0.1)
+@test act.res == (10,)
+@test a[1] == 10
+
+send!(A, Decr(5))
+send!(A, Decr(5))
+sleep(0.2)
 @test a[1] == 0
 
 @test !istaskfailed(A)

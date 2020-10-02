@@ -33,13 +33,13 @@ act = YAActL.diag(A)
 @test act.bhv.f == inca
 
 send!(A, Incr(10))
-sleep(0.01)
+sleep(0.1)
 @test act.res == (10,)
 @test a[1] == 10
 
 send!(A, Decr(5))
 send!(A, Decr(5))
-sleep(0.1)
+sleep(0.2)
 @test a[1] == 0
 
 @test !istaskfailed(A)

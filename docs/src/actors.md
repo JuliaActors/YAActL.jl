@@ -6,10 +6,10 @@
 > - create a finite number of new actors;
 > - designate the behavior to be used for the next message it receives. [^1]
 
-`YAActL` actors are Julia tasks represented by a local or remote [`LINK`](@ref), a channel over which they receive and send [messages](messages.md) [^2]. They:
+`YAActL` actors are Julia tasks represented by local or remote [`LINK`](@ref)s, channels over which they receive and send [messages](messages.md) [^2]. They:
 
 - *react* to those messages,
-- *execute* a user defined [behavior function](behavior.md) when receiving certain messages,
+- *execute* user defined [behavior functions](behavior.md) when receiving certain messages,
 - *change* their behavior upon request,
 - *update* their [internal state](@ref state) influencing how they behave.
 
@@ -17,7 +17,7 @@
 
 ## Start
 
-In the simplest case we start an `Actor` with a predefined [behavior](behavior.md) and get a [link](links.md) to it.
+In the simplest case we start an `Actor` with a previously implemented [behavior](behavior.md) and get a [link](links.md) to it.
 
 ```@docs
 Actor

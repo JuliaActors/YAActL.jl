@@ -25,6 +25,7 @@ println("running examples, output suppressed!")
 redirect_devnull() do
     @safetestset "Factorial"     begin include("../examples/factorial.jl") end
     @safetestset "Simple"        begin include("../examples/simple.jl") end
+    @safetestset "Simple msg."   begin include("../examples/simple_msg.jl") end
     @testset     "Simple distr." begin include("../examples/simple_distr.jl") end
     @safetestset "Stack"         begin include("../examples/stack.jl") end
 end

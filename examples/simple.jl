@@ -1,34 +1,30 @@
 using YAActL, Printf
 
-struct Prt <: Message        # define a message
-    txt::String
-end
-
-# define two behaviors accepting a msg::Message as their last argument
-function pr(msg::Prt)
-    print(@sprintf("%s\n", msg.txt))
+# define two functions for printing a message
+function pr(msg)
+    print(@sprintf("%s\n", msg))
     become(pr, "Next") # change behavior
 end
-pr(info, msg::Prt) = print(@sprintf("%s: %s\n", info, msg.txt))
+pr(info, msg) = print(@sprintf("%s: %s\n", info, msg))
 
-# a behavior for doing arithmetic
-function calc(op::F, v::U, msg::Request) where {F<:Function,U<:Number}
-    send!(msg.from, Response(op(v,msg.x)))
-end
+# a function for doing arithmetic
+calc(op::F, x, y) where F<:Function = op(x, y)
 
-# start an actor with the first behavior and save the returned link
+# start an actor with the first behavior
 myactor = Actor(pr)
 
-send!(myactor, Prt("My first actor"))  # send a message to it
+cast!(myactor, "My first actor")     # send a message to it
 
-send!(myactor, Prt("Something else"))  # send again a message
+cast!(myactor, "Something else")     # send again a message
 
-become!(myactor, pr, "New behavior")   # change the behavior to another one
+become!(myactor, pr, "New behavior") # change the behavior to another one
 
-send!(myactor, Prt("bla bla bla"))     # and send again a message
+cast!(myactor, "bla bla bla")        # and send again a message
 
-become!(myactor, calc, +, 10);         # now become a adding machine
+become!(myactor, calc, +, 10);       # become a machine for adding to 10
 
-send!(myactor, Request(5, USR));       # send a request to add 5
+call!(myactor, 5)                    # send a request to add 5
 
-take!(USR)                             # take the result
+become!(myactor, ^);                 # become a exponentiation machine
+
+call!(myactor, 123, 456)             # try it

@@ -1,52 +1,61 @@
 # Introduction
 
-An [`Actor`](@ref) reads a [`Message`](@ref) from a [`Link`](@ref) and passes it to a function implementing its behavior. It can change its own behavior with [`become`](@ref). To setup an actor system you need to define messages and to implement some behaviors:
+A `YAActL` [actor](actors.md)
+
+- is a *task* running on a thread or a remote node which
+- receives [*messages*](messages.md) over a [*channel*](links.md) and with it
+- dispatches a *function* or one of of its methods.
 
 ```julia
 using YAActL, Printf
 
-struct Prt <: Message        # define a message
-    txt::String
-end
-
-# define two behaviors accepting a msg::Message as their last argument
-function pr(msg::Prt)
-    print(@sprintf("%s\n", msg.txt))
+# define two functions for printing a message
+function pr(msg)
+    print(@sprintf("%s\n", msg))
     become(pr, "Next") # change behavior
 end
-pr(info, msg::Prt) = print(@sprintf("%s: %s\n", info, msg.txt))
+pr(info, msg) = print(@sprintf("%s: %s\n", info, msg))
 
-# a behavior for doing arithmetic
-function calc(op::F, v::U, msg::Request) where {F<:Function,U<:Number}
-    send!(msg.lk, Response(op(v,msg.x)))
-end
+# a function for doing arithmetic
+calc(op::F, x, y) where F<:Function = op(x, y)
 
-# start an actor with the first behavior and save the returned link
+# start an actor with the first behavior
 myactor = Actor(pr)
 ```
 
-now we can interact with it:
+Now we can interact with it:
 
 ```julia
-julia> send!(myactor, Prt("My first actor"));  # send a message to it
+julia> cast!(myactor, "My first actor")     # send a message to it
 My first actor
+```
 
-julia> send!(myactor, Prt("Something else"));  # send again a message
+Our actor has executed its behavior function `pr` with the message as argument. You may have noticed above that `pr(msg)` causes the actor to change its behavior to `pr("Next:", msg)`. Now we send it something else:
+
+```julia
+julia> cast!(myactor, "Something else")     # send again a message
 Next: Something else
 
-julia> become!(myactor, pr, "New behavior");   # change the behavior to another one
+julia> become!(myactor, pr, "New behavior") # change the behavior to another one
 
-julia> send!(myactor, Prt("bla bla bla"));     # and send again a message
+julia> cast!(myactor, "bla bla bla")        # and send again a message
 New behavior: bla bla bla
 ```
 
 Our actor can also change to a completely different behavior and do some arithmetic:
 
 ```julia
-julia> become!(myactor, calc, +, 10);         # now become a adding machine
+julia> become!(myactor, calc, +, 10);       # now become a machine for adding to 10
 
-julia> send!(myactor, Request(5, USR));       # send a request to add 5
+julia> call!(myactor, 5)                    # send a request to add 5 to it and to return the result
+15
 
-julia> take!(USR)                             # take the result
-Response{Int64}(15)
+julia> become!(myactor, ^);                 # become an exponentiation machine
+
+julia> call!(myactor, 123, 456)             # try it
+2409344748064316129
 ```
+
+Actors thus can represent different and changing [*behaviors*](behavior.md) of real world or computational objects.
+
+If we implement and start multiple actors *interacting* with each other, we get an *actor system*.

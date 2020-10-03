@@ -1,8 +1,8 @@
 # YAActL.jl
 
-*Yet Another Actor Library* (but in Julia)
+*Yet another Actor Library* (built in Julia)
 
-`YAActL` aims to be a tiny smart actor library for parallel and distributed computing. It is in early development and uses native Julia tasks and channels to implement actors.
+`YAActL` is a library for concurrent computing in Julia based on the [Actor model](https://en.wikipedia.org/wiki/Actor_model).
 
 ## Documentation Overview
 
@@ -21,14 +21,12 @@
 
 ## Rationale
 
-1. Actors are exciting.
-2. Actors are needed for parallel computing.
-3. There is no mature [actor library](https://en.wikipedia.org/wiki/Actor_model#Actor_libraries_and_frameworks) in Julia. 
-4. Building on Julia's existing strengths, it is possible to condense the actor-concept into a tiny smart and fast library for Julia.
-5. A community effort is needed to do it.
-6. This will enhance Julia's parallel computing capabilities.
+1. Actors are an important concept for concurrent computing.
+2. There is no [actor library](https://en.wikipedia.org/wiki/Actor_model#Actor_libraries_and_frameworks) in Julia. 
+3. Julia allows to condense the actor-concept into a  smart and fast library.
+4. A community effort is needed to do it.
 
-If you agree with those points, please join `YAActL`'s development.
+If you agree with those points, please help with  `YAActL`'s development.
 
 ## References
 

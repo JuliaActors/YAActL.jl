@@ -9,63 +9,65 @@
 [![Coverage](https://codecov.io/gh/pbayer/YAActL.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/pbayer/YAActL.jl)
 [![Coverage](https://coveralls.io/repos/github/pbayer/YAActL.jl/badge.svg?branch=master)](https://coveralls.io/github/pbayer/YAActL.jl?branch=master)
 
-`YAActL` aims to be a smart actor library for parallel and distributed computing. It builds on Julia's multiple dispatch and uses tasks and channels to implement actors.
+`YAActL` is a library for concurrent computing in Julia based on the [Actor model](https://en.wikipedia.org/wiki/Actor_model). An actor
+
+- is a *task* running on a thread or a remote node which
+- receives *messages* over a *channel* and with it
+- dispatches a *function* or one of of its methods.
+
+Actors thus can represent different and changing behaviors of real world or computational objects *interacting* with each other. This gives us an actor system.
 
 ```julia
 using YAActL, Printf
 
-struct Prt <: Message        # define a message
-    txt::String
-end
-
-# define two behaviors accepting a msg::Message as their last argument
-function pr(msg::Prt)
-    print(@sprintf("%s\n", msg.txt))
+# define two functions for printing a message
+function pr(msg)
+    print(@sprintf("%s\n", msg))
     become(pr, "Next") # change behavior
 end
-pr(info, msg::Prt) = print(@sprintf("%s: %s\n", info, msg.txt))
+pr(info, msg) = print(@sprintf("%s: %s\n", info, msg))
 
-# a behavior for doing arithmetic
-function calc(op::F, v::U, msg::Request) where {F<:Function,U<:Number}
-    send!(msg.from, Response(op(v,msg.x)))
-end
+# a function for doing arithmetic
+calc(op::F, x, y) where F<:Function = op(x, y)
 
-# start an actor with the first behavior and save the returned link
+# start an actor with the first behavior
 myactor = Actor(pr)
 ```
 
-now we can interact with it:
+Now we can interact with it:
 
 ```julia
-julia> send!(myactor, Prt("My first actor"));  # send a message to it
+julia> cast!(myactor, "My first actor")     # send a message to it
 My first actor
 
-julia> send!(myactor, Prt("Something else"));  # send again a message
+julia> cast!(myactor, "Something else")     # send again a message
 Next: Something else
 
-julia> become!(myactor, pr, "New behavior");   # change the behavior to another one
+julia> become!(myactor, pr, "New behavior") # change the behavior to another one
 
-julia> send!(myactor, Prt("bla bla bla"));     # and send again a message
+julia> cast!(myactor, "bla bla bla")        # and send again a message
 New behavior: bla bla bla
 ```
 
 Our actor can also change to a completely different behavior and do some arithmetic:
 
 ```julia
-julia> become!(myactor, calc, +, 10);         # now become a machine for adding to 10
+julia> become!(myactor, calc, +, 10);       # now become a machine for adding to 10
 
-julia> send!(myactor, Request(5, USR));       # send a request to add 5
+julia> call!(myactor, 5)                    # send a request to add 5 to it and to return the result
+15
 
-julia> take!(USR)                             # take the result
-Response{Int64}(15)
+julia> become!(myactor, ^);                 # become an exponentiation machine
+
+julia> call!(myactor, 123, 456)             # try it
+2409344748064316129
 ```
 
 ## Rationale
 
-1. Actors are exciting.
-2. Actors are needed for parallel computing.
-3. There is no [actor library](https://en.wikipedia.org/wiki/Actor_model#Actor_libraries_and_frameworks) in Julia. 
-4. Building on Julia's existing strengths it is possible to condense the actor-concept into a tiny smart and fast library.
-5. A community effort is needed to do it.
+1. Actors are an important concept for concurrent computing.
+2. There is no [actor library](https://en.wikipedia.org/wiki/Actor_model#Actor_libraries_and_frameworks) in Julia. 
+3. Julia allows to condense the actor-concept into a  smart and fast library.
+4. A community effort is needed to do it.
 
-If you agree with those points, please join `YAActL`'s development.
+If you agree with those points, please help with  `YAActL`'s development.

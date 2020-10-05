@@ -37,10 +37,10 @@ include("diag.jl")
 export  Message, Response, Request, Timeout, Func, Args,
         Link, RLink, LINK, newLink, LinkParams, parallel, USR,
         send!, request!, receive!,
-        Actor, become, stopActor,  
+        Actor, become, stop,  
         Dispatch, full, state,
-        become!, call!, cast!, get, init!, query,
-        self, set!, stopActor!, terminate!, update!, 
+        become!, call!, cast!, exec!, exit!, get!, init!, 
+        query!, self, set!, term!, update!, 
         register!, taskstate
 
 end

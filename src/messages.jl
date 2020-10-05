@@ -56,6 +56,7 @@ struct Call{T, L} <: Message
     x::T
     from::L
 end
+Call(from) = Call{Tuple{},typeof(from)}((),from)
 
 """
     Cast(arg)
@@ -69,6 +70,7 @@ state with the result.
 struct Cast{T} <: Message
     x::T
 end
+Cast() = Cast{Tuple{}}(())
 
 """
     Diag(from::LINK)
@@ -77,6 +79,17 @@ A synchronous [`Message`](@ref) to an actor to send a
 `Response` message with its internal `_ACT` variable to `from`.
 """
 struct Diag{L} <: Message 
+    from::L
+end
+
+"""
+    Exec(func::Func, from::LINK)
+
+A synchronous [`Message`](@ref) to an actor to execute `func`
+and to send a `Response` message with the return value to `from`.
+"""
+struct Exec{F,L} <: Message
+    func::F
     from::L
 end
 
@@ -147,11 +160,16 @@ struct Set{T} <: Message
 end
 
 """
-    Stop()
+    Stop(code=0)
 
-A [`Message`](@ref) causing an actor to stop.
+A [`Message`](@ref) causing an actor to stop with an exit
+`code`. If present, it calls its [`term!`](@ref) function with
+`code` as last argument.
 """
-struct Stop <: Message end
+struct Stop{T} <: Message 
+    x::T
+end
+Stop() = Stop(0)
 
 """
     Term(x::Func)

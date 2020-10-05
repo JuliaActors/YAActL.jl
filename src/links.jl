@@ -24,18 +24,16 @@ function newLink(sz::Integer=32)
 end
 
 """
-    LinkParams(size=32; taskref=nothing, spawn=false)
+    LinkParams(pid=myid(), size=32; taskref=nothing, spawn=false)
 
-Set the parameters for setting up an [`Actor`](@ref). 
+Parameters for setting up an [`Actor`](@ref). 
 
-# Parameters
 - `pid::Int`: process identification,
 - `size::Int`: channel buffer size, must be `size ≥ 10`,
 - `taskref::Union{Nothing, Ref{Task}}`: If you need a reference to the created task,
     pass a `Ref{Task}` object via the keyword argument `taskref`.
 - `spawn::Bool`: If spawn = true, the Task created may be scheduled on another
     thread in parallel, equivalent to creating a task via `Threads.@spawn`.
-- `persistent::Bool`: if persistent = false, the 
 """
 struct LinkParams
     pid::Int
@@ -53,6 +51,17 @@ end
     parallel(size=32; taskref=nothing)
 
 Return [`LinkParams`](@ref) with `spawn=true`.
+
+# Example
+
+```jldoctest
+julia> using YAActL, .Threads
+
+julia> myactor = Actor(parallel(), threadid);
+
+julia> call!(myactor)
+2
+```
 """
 parallel(size=32; taskref=nothing) = LinkParams(myid(), size, taskref=taskref, spawn=true)
 

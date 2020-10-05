@@ -29,6 +29,7 @@ Become
 Call
 Cast
 Diag
+Exec
 Get
 Init
 Query

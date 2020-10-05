@@ -23,7 +23,7 @@ sleep(0.1)
 @test taskstate(A) == :runnable
 
 # test diag and actor startup, become! (implicitly)
-act = YAActL.diag(A)
+act = YAActL.diag!(A)
 sleep(0.1)
 @test act.dsp == full
 @test act.sta == Tuple{}()
@@ -53,7 +53,7 @@ sleep(0.1)
 @test act.bhv.kwargs == pairs((x=1,y=2,z=1))
 
 # test get
-@test get(A) == (1,2,3)
+@test get!(A) == (1,2,3)
 
 # test call!
 become!(A, incx, a, y=b, z=c)

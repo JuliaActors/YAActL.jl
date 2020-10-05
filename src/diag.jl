@@ -42,9 +42,9 @@ function taskstate(lk::Link)
 end
 
 """
-	diag(lk::LINK)
+	diag!(lk::LINK)
 
 Return the internal `_ACT` variable of the `lk` actor.
 This is only for diagnosis and testing.
 """
-diag(lk::LK) where LK<:LINK = request!(lk, Diag)
+diag!(lk::LK) where LK<:LINK = request!(lk, Diag)

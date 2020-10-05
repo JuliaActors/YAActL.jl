@@ -28,7 +28,7 @@ fail(msg::Incr) = undefined
 A = Actor(lp, inca)
 @test A isa Link
 @test t[].state == :runnable
-act = YAActL.diag(A)
+act = YAActL.diag!(A)
 @test act.link == A
 @test act.bhv.f == inca
 
@@ -45,7 +45,7 @@ sleep(0.2)
 @test !istaskfailed(A)
 @test taskstate(A) == :runnable
 
-stopActor!(A)
+exit!(A)
 sleep(0.1)
 @test !isopen(A)
 

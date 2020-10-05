@@ -35,18 +35,25 @@ mutable struct _ACT
 end
 
 # update methods
-_update(A::_ACT, args...) = A.sta = args
-function _update(A::_ACT, args::Args)
+_update!(A::_ACT, args...) = A.sta = args
+function _update!(A::_ACT, args::Args)
     A.bhv = Func(A.bhv.f, args.args...;
         pairs((; merge(A.bhv.kwargs, args.kwargs)...))...)
 end
+_terminate!(A::_ACT, code) = !isnothing(A.term) && A.term.f((A.term.args..., code)...; kwargs...)
 
 # actor dispatch on messages
 _act(A::_ACT, msg::Set)    = _act(A, msg, msg.x)
 _act(A::_ACT, msg::Become) = A.bhv = msg.x
-_act(A::_ACT, msg::Update) = _update(A, msg.x...)
+_act(A::_ACT, msg::Exec)   = send!(msg.from, Response(msg.func.f(msg.func.args...; msg.func.kwargs...), A.link))
+_act(A::_ACT, msg::Update) = _update!(A, msg.x...)
 _act(A::_ACT, msg::Get)    = send!(msg.from, Response(A.sta, A.link))
 _act(A::_ACT, msg::Diag)   = send!(msg.from, Response(A, A.link))
+function _act(A::_ACT, msg::Init)
+    A.init = msg.x
+    A.sta  = A.init.f(A.init.args...; A.init.kwargs...)
+end
+_act(A::_ACT, msg::Stop) = terminate!(A, msg.x)
 _act(A::_ACT, msg::M) where M<:Message = _act(A, Val(A.dsp), msg)
 
 # dispatch on Set message
@@ -85,11 +92,8 @@ function _act(lk::Link)
     task_local_storage("ACT",A)
     while true
         msg = take!(lk)
-        if msg isa Stop
-            break
-        else
-            _act(A, msg)
-        end
+        _act(A, msg)
+        msg isa Stop && break
         yield()
     end
 end
@@ -145,5 +149,9 @@ function become(bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N}
     act.bhv = Func(bhv, args...; kwargs...)
 end
 
-"`stopActor()`: an actor terminates."
-stopActor() = send!(_self(), Stop())
+"""
+    stop(code=0)
+
+Cause your actor to exit with `code`.
+"""
+stop(code=0) = send!(_self(), Stop(code))

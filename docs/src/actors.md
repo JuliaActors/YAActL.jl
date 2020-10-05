@@ -77,40 +77,41 @@ The following interface to actors is for common use:
 - [`become!`](@ref): cause an actor to switch its behavior,
 - [`call!`](@ref): call an actor to execute its behavior function and to return the result,
 - [`cast!`](@ref): cause an actor to execute its behavior function,
-- [`get`](@ref): get an actor's internal state,
+- [`get!`](@ref): get an actor's internal state,
 - [`init!`](@ref): tell an actor to execute a function at startup,
-- [`query`](@ref): prompt for the result of the last call to the behavior function,
+- [`query!`](@ref): prompt for the result of the last call to the behavior function,
 - [`self`](@ref): get your actor's link,
 - [`set!`](@ref): set the actor's dispatch mode,
-- [`stopActor!`](@ref): terminate an actor,
-- [`terminate!`](@ref): tell an actor to execute a function when it terminates.
+- [`exit!`](@ref): terminate an actor,
+- [`term!`](@ref): tell an actor to execute a function when it terminates.
 - [`update!`](@ref): update an actor's internal state,
 
-Those functions are wrappers to the [predefined messages](messages.md) and to the `send!` or `request!` functions. They all involve a communication.
+Those functions are wrappers to [predefined messages](messages.md) and to the `send!` or `request!` functions. They all involve a communication.
 
 ```@docs
 become!
 call!
 cast!
-Base.get
+Base.get!
+exec!
+exit!
 init!
-query
+query!
 update!
 set!
-stopActor!
-terminate!
+term!
 ```
 
 Actors can also operate on themselves or rather they send messages to themselves:
 
 - [`become`](@ref): and actor switches its own behavior,
 - [`self`](@ref): an actor gets a link to itself,
-- [`stopActor`](@ref): an actor stops.
+- [`stop`](@ref): an actor stops.
 
 ```@docs
 become
 self
-stopActor
+stop
 ```
 
 ## Actor State

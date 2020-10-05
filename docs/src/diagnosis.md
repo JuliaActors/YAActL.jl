@@ -16,5 +16,5 @@ taskstate
 For diagnostic purposes it is possible to get access to the actor's [`ACT`](@ref _ACT) variable:
 
 ```@docs
-diag
+diag!
 ```

@@ -64,29 +64,35 @@ _tuple(x) = applicable(length, x) ? Tuple(x) : (x,)
 
 # dispatch on Call message
 function _act(A::_ACT, ::Val{full}, msg::Call)
-    A.res = _tuple(A.bhv.f((A.bhv.args..., msg.x...)...; A.bhv.kwargs...))
-    send!(msg.from, Response(A.res, A.link))
+    res = A.bhv.f((A.bhv.args..., msg.x...)...; A.bhv.kwargs...)
+    !isnothing(res) && (A.res = _tuple(res))
+    send!(msg.from, Response(res, A.link))
 end
 function _act(A::_ACT, ::Val{state}, msg::Call)
-    A.sta = A.res = _tuple(A.bhv.f((A.sta..., msg.x...)...; A.bhv.kwargs...))
-    send!(msg.from, Response(A.sta, A.link))
+    res = A.bhv.f((A.sta..., msg.x...)...; A.bhv.kwargs...)
+    !isnothing(res) && (A.sta = A.res = _tuple(res))
+    send!(msg.from, Response(res, A.link))
 end
 # dispatch on Cast message
-function _act(A::_ACT, ::Val{full},  msg::Cast) 
-    A.res = _tuple(A.bhv.f((A.bhv.args..., msg.x...)...; A.bhv.kwargs...))
+function _act(A::_ACT, ::Val{full},  msg::Cast)
+    res = A.bhv.f((A.bhv.args..., msg.x...)...; A.bhv.kwargs...)
+    !isnothing(res) && (A.res = _tuple(res))
 end
-function _act(A::_ACT, ::Val{state}, msg::Cast) 
-    A.sta = A.res = _tuple(A.bhv.f((A.sta..., msg.x...)...; A.bhv.kwargs...))
+function _act(A::_ACT, ::Val{state}, msg::Cast)
+    res = A.bhv.f((A.sta..., msg.x...)...; A.bhv.kwargs...)
+    !isnothing(res) && (A.sta = A.res = _tuple(res))
 end
 # dispatch on other user defined messages
 function _act(A::_ACT, ::Val{full}, msg::M) where M<:Message
-    A.res = _tuple(A.bhv.f((A.bhv.args..., msg)...; A.bhv.kwargs...))
+    res = A.bhv.f((A.bhv.args..., msg)...; A.bhv.kwargs...)
+    !isnothing(res) && (A.res = _tuple(res))
 end
 function _act(A::_ACT, ::Val{state}, msg::M) where M<:Message
-    A.sta = A.res = _tuple(A.bhv.f((A.sta..., msg)...; A.bhv.kwargs...))
+    res = A.bhv.f((A.sta..., msg)...; A.bhv.kwargs...)
+    !isnothing(res) && (A.sta = A.res = _tuple(res))
 end
 
-# implements the actor loop
+# this is the actor loop
 function _act(lk::Link)
     A = _ACT(lk)
     task_local_storage("ACT",A)

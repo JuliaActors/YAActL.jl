@@ -4,7 +4,7 @@
 
 `YAActL` is a library for concurrent computing in Julia based on the [Actor model](https://en.wikipedia.org/wiki/Actor_model).
 
-## Documentation Overview
+## Overview
 
 - A [quick introduction](intro.md) to `YAActL`,
 - Manual, how to:
@@ -22,7 +22,7 @@
 ## Rationale
 
 1. Actors are an important concept for concurrent computing.
-2. There is no [actor library](https://en.wikipedia.org/wiki/Actor_model#Actor_libraries_and_frameworks) in Julia. 
+2. There is no [actor library](https://en.wikipedia.org/wiki/Actor_model#Actor_libraries_and_frameworks) in Julia.
 3. Julia allows to condense the actor-concept into a  smart and fast library.
 4. A community effort is needed to do it.
 

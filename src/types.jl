@@ -26,7 +26,7 @@ to the behavior function:
 """
 A `Channel{Message}` type for communicating with local actors.
 
-!!! warn
+!!! warning "Use buffered channels!"
 
     In actor systems we always use buffered links to avoid blocking.
     Responding on an unbuffered or full link causes an actor to block.

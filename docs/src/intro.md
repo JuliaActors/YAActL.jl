@@ -4,7 +4,7 @@ A `YAActL` [actor](actors.md)
 
 - is a *task* running on a thread or a remote node which
 - receives [*messages*](messages.md) over a [*channel*](links.md) and with it
-- dispatches a *function* or one of of its methods.
+- dispatches a [*behavior*](behavior.md) function or one of of its methods.
 
 ```julia
 using YAActL, Printf

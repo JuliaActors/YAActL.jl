@@ -43,7 +43,7 @@ Be careful to [`update!`](@ref) the actor's state since it overwrites it. Don't 
 
 Only the actor itself is allowed to update its state in a strictly sequential manner by processing message after message.
 
-Other actors or users can cause an actor to update its state by sending it a message, which is done implicitly by using the [API](@ref api) functions.
+Other actors or users can cause an actor to update its state by sending it a message, which is done implicitly by using the [API](api.md) functions.
 
 ## Behavior Function Arguments
 

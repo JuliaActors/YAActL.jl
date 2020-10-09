@@ -1,5 +1,9 @@
 # Actors
 
+```@meta
+CurrentModule = YAActL
+```
+
 > An Actor is a computational entity that, in response to a message it receives, can concurrently:
 >
 > - send a finite number of messages to other actors;
@@ -13,15 +17,11 @@
 - *change* their behavior upon request,
 - *update* their [internal state](@ref state) influencing how they behave.
 
-`YAActL` provides [various commands](@ref api) to set, control, trigger and query actor behavior and state.
+`YAActL` provides [various commands](api.md) to set, control, trigger and query actor behavior and state.
 
 ## Start
 
-In the simplest case we start an `Actor` with a previously implemented [behavior](behavior.md) and get a [link](links.md) to it.
-
-```@docs
-Actor
-```
+In the simplest case we use [`Actor`](@ref) to start an actor with a previously implemented [behavior](behavior.md) and get a [link](links.md) to it.
 
 The following [code](@ref stack_example) starts an actor with a `stack_node` behavior function and some arguments to it.
 
@@ -31,34 +31,16 @@ mystack = Actor(stack_node, StackNode(nothing, Link()))
 
 We can now [`send!`](@ref) messages to `mystack` or do other operations on it.
 
-## Operation
+## Messages
 
-An actor recognizes and operates on [predefined messages](messages.md). Basically there are only two functions to interact with an actor:
+`YAActL` actors operate on [predefined messages](messages.md) all of type [`Message`](@ref). Basically there are only two functions to interact with an actor:
 
 - [`send!`](@ref): send a message to an actor,
 - [`receive!`](@ref): receive a message,
-- [`request!`](@ref): send a message to an actor, block, receive and return the result.
 
-```@docs
-send!
-receive!
-request!
-```
+Actors process messages asynchronously.
 
-## Message API
-
-Users can interact with actors with explicit messages:
-
-```@docs
-Message
-Response
-Request
-Timeout
-```
-
-If an actor receives a `Request` message or any other not [predefined message](messages.md), it executes its [behavior function](behavior.md) with this message as the last argument.
-
-This mechanism can be employed to extend the actor's behavior. A user can implement further message types. For example:
+A user can implement further message types. For example:
 
 ```julia
 struct Pop <: Message
@@ -70,38 +52,29 @@ struct Push{T} <: Message
 end
 ```
 
-## [User API](@id api)
+Those are forwarded by the actor as last arguments to its behavior function.
 
-The following interface to actors is for common use:
+## Behavior
+
+Actors execute their behavior function when they receive a `Request` message or another user implemented message [^3].
+
+They pass those messages as the last argument to the behavior function. How actors compose the arguments, is explained in length in [Behaviors](behavior.md).
+
+The actor will store the return value in its internal [`res`](@ref _ACT) variable. It can be queried from the actor with [`query!`](@ref).
+
+## Actor Control
+
+Actors can be controlled with the following functions:
 
 - [`become!`](@ref): cause an actor to switch its behavior,
-- [`call!`](@ref): call an actor to execute its behavior function and to return the result,
 - [`cast!`](@ref): cause an actor to execute its behavior function,
-- [`get!`](@ref): get an actor's internal state,
-- [`exec!`](@ref): tell an actor to execute a function,
 - [`exit!`](@ref): cause an actor to terminate,
 - [`init!`](@ref): tell an actor to execute a function at startup,
-- [`query!`](@ref): prompt for the result of the last call to the behavior function,
-- [`self`](@ref): get your actor's link,
-- [`set!`](@ref): set the actor's dispatch mode,
+- [`set!`](@ref): set an actor's dispatch mode,
 - [`term!`](@ref): tell an actor to execute a function when it terminates.
 - [`update!`](@ref): update an actor's internal state,
 
-Those functions are wrappers to [predefined messages](messages.md) and to the `send!` or `request!` functions. They all involve a communication.
-
-```@docs
-become!
-call!
-cast!
-Base.get!
-exec!
-exit!
-init!
-query!
-update!
-set!
-term!
-```
+Those functions are wrappers to [predefined messages](messages.md) and to `send!`.
 
 Actors can also operate on themselves or rather they send messages to themselves:
 
@@ -109,16 +82,26 @@ Actors can also operate on themselves or rather they send messages to themselves
 - [`self`](@ref): an actor gets a link to itself,
 - [`stop`](@ref): an actor stops.
 
-```@docs
-become
-self
-stop
-```
+## Bidirectional Messages
+
+What if you want to receive a reply from an actor? On top of the asynchronous messaging between actors there is an interface with bidirectional synchronous messages:
+
+- [`request!`](@ref): send a message to an actor and receive the result.
+
+The following functions use `request!` and do specific things with it:
+
+- [`call!`](@ref): call an actor to execute its behavior function and to return the result,
+- [`get!`](@ref): get an actor's internal state,
+- [`exec!`](@ref): tell an actor to execute a function,
+- [`query!`](@ref): prompt for the result of the last call to the behavior function.
+
+All those functions - if you don't provide a response link - will establish a private link to an actor, **block**, receive the result and return it. You should not use blocking when you need to be strictly responsive.
 
 ## Actor State
 
-The [actor state](@ref state) is internal and is shared with its environment only for diagnostic purposes. The [API](@ref api) functions above are a safe way to access actor state.
+The [actor state](@ref state) is internal and is shared with its environment only for diagnostic purposes. The [API](api.md) functions above are a safe way to access actor state.
 
 
 [^1]: See: The [Actor Model](https://en.wikipedia.org/wiki/Actor_model) on Wikipedia.
 [^2]: They build on Julia's concurrency primitives  `@spawn`, `put!` and `take!` (to/from `Channel`s).
+[^3]: Actors also execute behavior when they get the [internal messages](messages.md) `Call` or `Cast`.

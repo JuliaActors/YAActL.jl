@@ -13,9 +13,11 @@
 
 - is a *task* running on a thread or a remote node which
 - receives *messages* over a *channel* and with it
-- dispatches a *function* or one of of its methods.
+- dispatches a *behavior* function or one of its methods.
 
-Actors thus can represent different and changing behaviors of real world or computational objects *interacting* with each other. This gives us an actor system.
+Actors thus can represent concurrently different and changing behaviors of real world or computational objects *interacting* with each other. This gives us an actor system.
+
+## One Single Actor
 
 ```julia
 using YAActL, Printf
@@ -49,7 +51,7 @@ julia> cast!(myactor, "bla bla bla")        # and send again a message
 New behavior: bla bla bla
 ```
 
-Our actor can also change to a completely different behavior and do some arithmetic:
+The actor can also change to a completely different behavior and do some arithmetic:
 
 ```julia
 julia> become!(myactor, calc, +, 10);       # now become a machine for adding to 10

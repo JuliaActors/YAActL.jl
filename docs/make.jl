@@ -14,13 +14,15 @@ makedocs(
             "links.md",
             "behavior.md",
             "patterns.md"],
+        "Actor API" => "api.md",
         "Examples" => [
             "examples/stack.md",
             "examples/factorial.md"],
         "Internals" => [
             "messages.md",
             "internals.md",
-            "diagnosis.md"]
+            "diagnosis.md"],
+        "References" => "references.md"
     ]
 )
 

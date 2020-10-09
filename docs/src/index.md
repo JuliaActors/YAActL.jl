@@ -9,9 +9,10 @@
 - A [quick introduction](intro.md) to `YAActL`,
 - Manual, how to:
     - [setup](setup.md) `YAActL`,
-    - [start and operate actors](actors.md),
-    - understand [links to actors](links.md),
-    - understand and define [actor behaviors](behavior.md),
+    - understand and use [actors](actors.md),
+    - understand [links](links.md) to actors,
+    - control actor [behavior](behavior.md).
+- Actor API: [detailed documentation](api.md).
 - Examples:
     - a [stack](examples/stack.md),
     - a [recursive factorial](examples/factorial.md),
@@ -27,13 +28,6 @@
 4. A community effort is needed to do it.
 
 If you agree with those points, please help with  `YAActL`'s development.
-
-## References
-
-- The [Actor model](https://en.wikipedia.org/wiki/Actor_model) on Wikipedia
-- Gul Agha: Actors, A Model of Concurrent Computation in Distributed Systems.- 1986, MIT Press
-- Vaughn Vernon: Reactive Messaging Patterns with the Actor Model, Applications and Integrations in Scala and Akka.- 2016, Pearson
-- Joe Armstrong: Programming Erlang, 2nd ed., Software for a Concurrent World.- 2013 Pragmatic Programmers
 
 ## Author(s)
 

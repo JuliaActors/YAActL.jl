@@ -48,12 +48,13 @@ _act(A::_ACT, msg::Become) = A.bhv = msg.x
 _act(A::_ACT, msg::Exec)   = send!(msg.from, Response(msg.func.f(msg.func.args...; msg.func.kwargs...), A.link))
 _act(A::_ACT, msg::Update) = _update!(A, msg.x...)
 _act(A::_ACT, msg::Get)    = send!(msg.from, Response(A.sta, A.link))
+_act(A::_ACT, msg::Query)  = send!(msg.from, Response(A.res, A.link))
 _act(A::_ACT, msg::Diag)   = send!(msg.from, Response(A, A.link))
 function _act(A::_ACT, msg::Init)
     A.init = msg.x
     A.sta  = A.init.f(A.init.args...; A.init.kwargs...)
 end
-_act(A::_ACT, msg::Stop) = terminate!(A, msg.x)
+_act(A::_ACT, msg::Stop) = _terminate!(A, msg.x)
 _act(A::_ACT, msg::M) where M<:Message = _act(A, Val(A.dsp), msg)
 
 # dispatch on Set message

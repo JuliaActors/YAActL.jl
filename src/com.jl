@@ -39,32 +39,18 @@ send!(lks::Tuple{LINK,Vararg{LINK}}, m::M) where M<:Message =
 send!(lks::Vector{LINK}, m::M) where M<:Message =
     map(x->send!(x, m), lks)
 
-"""
-    request!(lk::LINK, Msg::Type{<:Message}, args...; full=false)
-
-Send a message of type `Msg` with optional `args...` to an 
-actor over a given [`LINK`](@ref) `lk`, block, receive and 
-return the result.
-
-If `full==true` return the full [`Response`](@ref) message.
-"""
-function request!(lk::LK, Msg::Type{<:Message}, args...; full=false) where LK<:LINK
-    me = lk isa Link ? Link(1) : RemoteChannel(()->Link(1))
-    send!(lk, isempty(args) ? Msg(me) : Msg(args, me))
-    resp = take!(me)
-    if full
-        return resp
-    elseif resp.y isa Tuple
-        return length(resp.y) == 1 ? resp.y[1] : resp.y
+_match(msg::M, ::Nothing, ::Nothing) where M<:Message = true
+_match(msg::M, Msg::Type{<:Message}, ::Nothing) where M<:Message = msg isa Msg
+function _match(msg::M, ::Nothing, from::LK) where {M<:Message,LK<:LINK} 
+    :from in fieldnames(typeof(msg)) ? msg.from == from : false
+end
+function _match(msg::M, Msg::Type{<:Message}, from::LK) where {M<:Message,LK<:LINK}
+    if :from in fieldnames(typeof(msg))
+        return msg isa Msg && msg.from == from
     else
-        return resp.y
+        return false
     end
 end
-
-matches(msg::M, ::Nothing, ::Nothing) where M<:Message = true
-matches(msg::M, Msg::Type{<:Message}, ::Nothing) where M<:Message = msg isa Msg
-matches(msg::M, ::Nothing, from::LK) where {M<:Message,LK<:LINK} = msg.from == from
-matches(msg::M, Msg::Type{<:Message}, from::LK) where {M<:Message,LK<:LINK} = msg isa Msg && msg.from == from
 
 """
 ```
@@ -81,7 +67,8 @@ matching message.
 # Parameters
 - `lk::LINK`: local or remote link over which the message is sent,
 - `Msg::Type{<:Message}`: [`Message`](@ref) type,
-- `from::LINK`: local or remote link of sender,
+- `from::LINK`: local or remote link of sender. Tf `from` is
+    provided, only messages with a `from` field can be matched.
 - `timeout::Real`: maximum waiting time in seconds.
 
 # Returns
@@ -102,12 +89,12 @@ function receive!(lk::L1, Msg::M, from::L2;
     @async begin
         while !done[1]
             timeout == 0 && !isready(lk) && break
-            matches(fetch(lk), Msg, from) && break
-            push!(stash, take!(lk))
+            _match(fetch(lk), Msg, from) && break
+            done[1] || push!(stash, take!(lk))
         end
         notify(ev)
     end
-    yield()
+
     wait(ev)
     done[1] = true
     isready(lk) && (msg = take!(lk))
@@ -116,4 +103,42 @@ function receive!(lk::L1, Msg::M, from::L2;
     end
     foreach(x->put!(lk,x), stash)
     return msg
+end
+
+"""
+```
+request!(lk::LINK, msg::Message; full=false, timeout::Real=5.0)
+request!(lk::LINK, Msg::Type{<:Message}, args...; kwargs...)
+```
+Send a message to an actor, block, receive and return the result.
+
+# Arguments
+- `lk::LINK`: actor link,
+- `msg::Message`: a message,
+- `Msg::Type{<:Message}`: a message type,
+- `args...`: optional arguments to `Msg`, 
+- `full`: if `true` return the full [`Response`](@ref) message.
+- `timeout::Real=5.0`: timeout in seconds after which a 
+    [`Timeout`](@ref) is returned,
+- `kwargs...`: `full` or `timeout`.
+
+"""
+function request!(lk::LK, msg::M; full=false, timeout::Real=5.0) where {LK<:LINK,M<:Message}
+    send!(lk, msg)
+    resp = receive!(msg.from, timeout=timeout)
+    if resp isa Timeout || full
+        return resp
+    elseif resp.y isa Tuple
+        return length(resp.y) == 1 ? resp.y[1] : resp.y
+    else
+        return resp.y
+    end
+end
+function request!(lk::LK, Msg::Type{<:Message}, args...; kwargs...) where LK<:LINK 
+    me = lk isa Link ? Link(1) : RemoteChannel(()->Link(1))
+    if Msg == Exec
+        request!(lk, Exec(args..., me); kwargs...)
+    else
+        request!(lk, isempty(args) ? Msg(me) : Msg(args, me); kwargs...)
+    end
 end

@@ -59,8 +59,31 @@ sleep(0.1)
 become!(A, incx, a, y=b, z=c)
 set!(A, full)
 @test call!(A, 1) == 4
+@test query!(A) == 4
+@test get!(A) == (1,2,3)
 set!(A, state)
 update!(A, 1)
 update!(A, Args(y=2,z=2))
+@test call!(A, 2) == 7
+@test get!(A) == 7
+@test query!(A) == 7
 
 # test cast!
+update!(A, 2)
+update!(A, Args(y=1,z=1))
+cast!(A, 2)
+@test get!(A) == 6
+@test query!(A) == 6
+set!(A, full)
+update!(A, Args(a, y=3,z=3))
+cast!(A, 3)
+@test query!(A) == 10
+@test get!(A) == 6
+
+# test exec!
+@test exec!(A, Func(cos, 2pi)) == 1
+
+# test exit!
+exit!(A)
+sleep(0.1)
+@test taskstate(A).state == :closed

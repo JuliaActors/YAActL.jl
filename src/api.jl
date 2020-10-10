@@ -77,7 +77,7 @@ Base.get!(lk::L1, from::L2) where {L1<:LINK, L2<:LINK} = send!(lk, Get(from))
 Base.get!(lk::LK) where LK<:LINK = request!(lk, Get)
 
 """
-init!(lk::LINK, f::Function, args...; kwargs...)
+    init!(lk::LINK, f::Function, args...; kwargs...)
 
 Tell an actor `lk` to execute the init function `f` with the 
 given arguments at startup and to save the returned value as

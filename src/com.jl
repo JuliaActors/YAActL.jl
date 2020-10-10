@@ -67,9 +67,11 @@ matching message.
 # Parameters
 - `lk::LINK`: local or remote link over which the message is sent,
 - `Msg::Type{<:Message}`: [`Message`](@ref) type,
-- `from::LINK`: local or remote link of sender. Tf `from` is
+- `from::LINK`: local or remote link of sender. If `from` is
     provided, only messages with a `from` field can be matched.
 - `timeout::Real`: maximum waiting time in seconds.
+    If `timeout==0`, `lk` is scanned for existing messages.
+    Set `timeout=Inf` if you don't want `receive!` to timeout. 
 
 # Returns
 - received message or `Timeout()`.
@@ -84,7 +86,7 @@ function receive!(lk::L1, Msg::M, from::L2;
     msg = Timeout()
     stash = Message[]
     ev = Base.Event()
-    timeout > 0 && Timer(x->notify(ev), timeout)
+    timeout > 0 && !isinf(timeout) && Timer(x->notify(ev), timeout)
 
     @async begin
         while !done[1]

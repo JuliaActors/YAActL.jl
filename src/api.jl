@@ -19,8 +19,10 @@ become!(lk::LK, bhv::F, args::Vararg{Any, N}; kwargs...) where {LK<:LINK, F<:Fun
     send!(lk, Become(Func(bhv, args...; kwargs...)))
 
 """
-    call!(lk::LINK, [from::LINK], args...)
-
+```
+call!(lk::LINK, from::LINK, args...)
+call!(lk::LINK, args...; timeout::Real=5.0)
+```
 Call the `lk` actor`s behavior function with `args...` and 
 send its returned value as [`Response`](@ref) to the `from` 
 channel. If `from` is omitted, `call!` **blocks** and returns 
@@ -32,7 +34,7 @@ the response.
 ```
 """
 call!(lk::L1, from::L2, args...) where {L1<:LINK, L2<:LINK} = send!(lk, Call(args, from))
-call!(lk::LK, args...) where LK<:LINK = request!(lk, Call, args...)
+call!(lk::LK, args...; timeout::Real=5.0) where LK<:LINK = request!(lk, Call, args...; timeout=timeout)
 
 """
     cast!(lk::LINK, args...)
@@ -83,14 +85,17 @@ This is an asynchronous message without a response.
 exit!(lk::LK, code=0) where LK<:LINK = send!(lk, Stop(code))
 
 """
-    get!(lk::LINK, [from::LINK])
+```
+get!(lk::LINK, from::LINK)
+get!(lk::LINK; timeout::Real=5.0)
+```
 
 Get a [`Response`](@ref) message from the `lk` actor with its 
 internal [`state`](@ref _ACT) to the `from` channel. If `from` 
 is omitted, `get!` **blocks** and returns the response.
 """
 Base.get!(lk::L1, from::L2) where {L1<:LINK, L2<:LINK} = send!(lk, Get(from))
-Base.get!(lk::LK) where LK<:LINK = request!(lk, Get)
+Base.get!(lk::LK; timeout::Real=5.0) where LK<:LINK = request!(lk, Get, timeout=timeout)
 
 """
     init!(lk::LINK, f::Function, args...; kwargs...)
@@ -103,7 +108,10 @@ init!(lk::LK, f::F, args...; kwargs...) where {LK<:LINK, F<:Function} =
     send!(lk, Init(Func(f, args...; kwargs...)))
 
 """
-    query!(lk::LINK, [from::LINK])
+```
+query!(lk::LINK, [from::LINK])
+query!(lk::LINK; timeout::Real=5.0)
+```
 
 Query the result of the last call to the behavior function 
 from the `lk` actor. The [`Response`](@ref) is sent to the
@@ -111,7 +119,7 @@ from the `lk` actor. The [`Response`](@ref) is sent to the
 returns the response.
 """
 query!(lk::L1, from::L2) where {L1<:LINK, L2<:LINK} = send!(lk, Query(from))
-query!(lk::LK) where LK<:LINK = request!(lk, Query)
+query!(lk::LK; timeout::Real=5.0) where LK<:LINK = request!(lk, Query, timeout=timeout)
 
 """
     self()

@@ -10,9 +10,7 @@ abstract type Message end
 """
     Dispatch
 
-Enumeration type for dispatch modes of actors.
-
-Depending on the `Dispatch` mode the actor composes the arguments 
+Depending on its `Dispatch` mode an actor composes the arguments 
 to the behavior function:
 
 - `full`: from the [`Become`](@ref) `args...` and the `msg.x...`.

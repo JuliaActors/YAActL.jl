@@ -44,17 +44,33 @@ behavior function can be obtained with [`query!`](@ref)
 cast!(lk::LK, args...) where LK<:LINK = send!(lk, Cast(args))
 
 """
-    exec!(lk::LINK, [from::LINK], f::Function, args...; kwargs...)
+```
+exec!(lk::LINK, from::LINK, f::Function, args...; kwargs...)
+exec!(lk::LINK, from::LINK, fu::Func)
+exec!(lk::LINK, fu::Func; timeout::Real=5.0)
+```
 
-Tell the `lk` actor to execute `f(args...; kwargs...)` and 
-send the returned value as [`Response`](@ref) to the `from` 
+Tell an actor to execute an arbitrary function and to 
+send the returned value as a [`Response`](@ref).
+
+# Arguments
+- `lk::LINK`: link to the actor,
+- `from::LINK`: the link a `Response` should be sent to.
+    If `from` is ommitted, `exec!` does a synchronous call
+    and returns the result. In that case there is a `timeout`.
+- `f::Function, args...; kwargs...` or
+- `fu::Func`: function arguments,
+- `timeout::Real=5.0`: timeout in seconds. 
+to the `from` 
 channel. If `from` is omitted, `exec!` **blocks** and returns 
 the response value.
 """
 exec!(lk::L1, from::L2, f::F, args...; kwargs...) where {L1<:LINK,L2<:LINK,F<:Function} =
-    send!(lk, Exec(Func(f, args...; kwargs), from))
-exec!(lk::LK, f::F, args...; kwargs...) where {LK<:LINK,F<:Function} =
-    request!(lk, Exec, f, args...; kwargs...)
+    send!(lk, Exec(Func(f, args...; kwargs...), from))
+exec!(lk::L1, from::L2, fu::Func) where {L1<:LINK,L2<:LINK} =
+    send!(lk, Exec(fu, from))
+exec!(lk::LK, fu::Func; timeout::Real=5.0) where LK<:LINK =
+    request!(lk, Exec, fu; timeout=timeout)
 
 """
     exit!(lk::LINK, code=0)

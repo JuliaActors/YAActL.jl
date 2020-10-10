@@ -35,7 +35,7 @@ with `lk`.
 """
 function taskstate(lk::Link)
 	if istaskfailed(lk)
-		return lk.excp.task
+		return hasfield(typeof(lk.excp), :task) ? lk.excp.task : lk.excp
 	else
 		return lk.cond_take.waitq.head.donenotify.waitq.head.code.task.state
 	end

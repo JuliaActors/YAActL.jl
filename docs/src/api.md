@@ -21,7 +21,9 @@ Timeout
 
 Actors operate with [internal messages](messages.md). Further messages can be implemented by a user. If an actor receives a message other than an internal one, it passes the message as last argument to the behavior function.
 
-Messages are sent and received using the following  primitives:
+## Send and Receive
+
+Messages are sent and received using the following basic functions:
 
 ```@docs
 send!
@@ -30,7 +32,7 @@ receive!
 
 ## Actor Control
 
-The following functions control actor behavior and state.
+The following functions control actor behavior and state by sending implicit messages. To those actors don't send response messages.
 
 ```@docs
 become!
@@ -50,15 +52,23 @@ self
 stop
 ```
 
-## Synchronous Messaging
+## Bidirectional Messaging
 
-The following functions send messages to actors causing them to respond. There is one function primitive for this:
+The following functions send messages to actors causing them to send a [`Response`](@ref). There are two ways to do it:
+
+1. Send a message with an explicit `from`-link to an actor and it will respond to it. Then you can **asynchronously** [`receive!`](@ref) the response.
+2. Send a message with an implicit link to an actor, block and wait **synchronously** for the response.
+
+There is a basic function for synchronous communication:
 
 ```@docs
 request!
 ```
 
-The other functions use it to do specific things:
+The following functions operate
+
+- asynchronously if you provide them with a `from`-link or
+- synchronously (they block) if you don't.
 
 ```@docs
 call!
@@ -66,5 +76,3 @@ Base.get!
 exec!
 query!
 ```
-
-Note that all those functions **block** if you don't provide a response channel.

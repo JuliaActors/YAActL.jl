@@ -58,7 +58,7 @@ Those are forwarded by the actor as last arguments to its behavior function.
 
 Actors execute their behavior function when they receive a `Request` message or another user implemented message [^3].
 
-They pass those messages as the last argument to the behavior function. How actors compose the arguments, is explained in length in [Behaviors](behavior.md).
+They pass those messages as the last argument to the behavior function. How actors compose arguments is explained in [Behaviors](behavior.md).
 
 The actor will store the return value in its internal [`res`](@ref _ACT) variable. It can be queried from the actor with [`query!`](@ref).
 

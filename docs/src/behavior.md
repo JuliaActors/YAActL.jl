@@ -39,7 +39,7 @@ A behavior function can be implemented with different methods. Then the methods 
 
 If the actor tries to pass another message than `Pop` or `Push` to `stacknode(sn, msg)`, it will fail with an `ArgumentError` since only two methods are implemented.
 
-You can implement an ``\epsilon`` default method – if you mind – returning `nothing` on every other [`Message`](@ref). Then the actor will do nothing and not fail.
+You can implement an ``\epsilon`` default method – if you mind – returning `nothing` on every other [`Message`](@ref). Then the actor will do nothing with an unknown message and not fail.
 
 ## [Argument Composition](@id composition)
 
@@ -58,9 +58,9 @@ You can set the dispatch mode with [`set!`](@ref).
 
 ## Full Dispatch
 
-Above we used `full` dispatch. With `Actor(stack_node, sn)` the actor got `sn` as the first argument and can use that to represent state. If `sn` is mutable, a behavior function can even change its content. When a message `msg` arrives, the actor takes it as the second argument and composes both to execute the behavior.
+Above we used `full` dispatch. With `Actor(stack_node, sn)` the actor got `sn` as the first argument and can use that to represent state. If `sn` is mutable, a behavior function can even change its content. When a message `msg` arrives, the actor takes it as the second argument and composes them to execute the behavior.
 
-The `YAActL` [API](api.md) allows arbitrary arguments to a behavior function. You install a behavior `bhv` and deliver the *first part* of the arguments `args1...` with
+The `YAActL` [API](api.md) allows arbitrary arguments to a behavior function. To install a predefined behavior function `bhv` and to deliver the *first part* of its arguments `args1...` we have
 
 - [`act = Actor(bhv, args1...)`](@ref Actor) or
 - [`become!(act, bhv, args1...)`](@ref become!).
@@ -76,11 +76,11 @@ The actor then calls
 - `bhv((args1..., args2...)...)` or
 - `bhv((args1..., msg)...)` respectively. 
 
-Empty arguments `args1...` or `args2...` are allowed as long as their composition can used to dispatch the behavior function `bhv`.
+Empty arguments `args1...` or `args2...` are allowed as long as their composition can be used to dispatch the behavior function `bhv`.
 
 ## State Dispatch
 
-In `state` dispatch an actor uses its internal state [`sta`](@ref _ACT) as first argument to the behavior function. When a message `msg` arrives, it calls the behavior as `bhv(sta, msg)` and saves the returned value in its internal state variable `sta`. Thus it operates as a [finite-state machine](https://en.wikipedia.org/wiki/Finite-state_machine). This is a more functional approach. 
+In `state` dispatch an actor uses its internal state [`sta`](@ref _ACT) as first argument to the behavior function. On a message `msg` it calls the behavior as `bhv(sta, msg)` and saves the returned value in its internal state variable `sta`. Thus it operates as a [finite-state machine](https://en.wikipedia.org/wiki/Finite-state_machine). This is a more functional approach.
 
 A behavior `bhv` is installed without arguments[^4] as
 
@@ -92,7 +92,7 @@ Actor state [`sta`](@ref _ACT) can be set with
 - [`init!(act, args1...)`](@ref init!) and
 - [`update!(act, args1...)`](@ref update!).
 
-As above the second part `args2...` gets delivered with
+The second part `args2...` gets delivered with
 
 - [`call!(act, args2...)`](@ref call!) or
 - [`cast!(act, args2...)`](@ref cast!) or
@@ -117,12 +117,12 @@ The described mechanisms allow a fine-grained control of an actor's behavior:
 2. Control the *dynamic dispatch* of implemented behavior methods with
     - the actor's *dispatch mode*,
     - the *first arguments* delivered 
-        - either with the behavior function in `full`dispatch,
+        - either with the behavior function in `full` dispatch,
         - or by setting the actor state in `state` dispatch,
     - the *second arguments* delivered with the incoming message.
 3. Control the *outcome* of the dispatched function or method by setting the *values* of arguments and keyword arguments[^5].
 
-This allows actors to use Julia's expressiveness with functions and methods.
+This allows actors to use Julia's full expressiveness with functions and methods.
 
 [^1]: see the [Actor Model](https://en.wikipedia.org/wiki/Actor_model#Behaviors) on Wikipedia.
 [^2]: see also [JuliaCon 2019 | The Unreasonable Effectiveness of Multiple Dispatch | Stefan Karpinski](https://www.youtube.com/watch?v=kc9HwsxE1OY).

@@ -1,5 +1,17 @@
 # Actor API
 
+## Installation
+
+```@docs
+YAActL
+YAActL.version
+```
+
+```@repl
+using YAActL
+YAActL.version
+```
+
 The following functions provide a user interface to actors:
 
 ## Start
@@ -7,6 +19,32 @@ The following functions provide a user interface to actors:
 ```@docs
 Actor
 ```
+
+## [Links](@id links)
+
+An actor is only represented by its link which it returns upon creation:
+
+```@docs
+Link
+RLink
+LINK
+```
+
+Actors correspond with other actors over links. There is a default link for users to communicate with actors.
+
+```@docs
+USR
+```
+
+For setting up links explicitly we have the following functions.
+
+```@docs
+newLink
+LinkParams
+parallel
+```
+
+We send messages to actors and they can send them to others over links.
 
 ## Messages
 

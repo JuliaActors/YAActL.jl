@@ -1,7 +1,9 @@
 # Actor Patterns
 
-## Become-Pattern
+Here we describe some things we can do with actors:
 
-## Automaton-Pattern
+## State Machines
 
-## Supervisor-Pattern
+## Parallel Computation
+
+## Fault-tolerant Systems

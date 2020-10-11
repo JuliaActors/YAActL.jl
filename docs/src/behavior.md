@@ -32,23 +32,20 @@ A behavior function can be implemented with different methods. Then the methods 
 
 > based on the number of arguments given, and on the types of all of the function's arguments [^3].
 
-`YAActL` actors pass the incoming message as last argument to the behavior function. In the above example the actor dispatches the `stack_node` methods depending on whether the incoming message is a `Pop` or a `Push`. 
+`YAActL` actors pass the incoming message as last argument to the behavior function.   
 
-1. On its creation as `Actor(stack_node, sn)` it gets only the first argument `sn` to the `stack_node` function. 
-2. With a message `msg` it gets the second argument, **composes** it with the first and calls the behavior as `stack_node(sn, msg)`.
+1. Our behavior function call is `stack_node(sn, msg)`.
+2. After its creation as `Actor(stack_node, sn)` the actor has only the first argument `sn` to the behavior.
+3. With a message `msg` it gets the second argument and calls the behavior as `stack_node(sn, msg)`.
+4. Depending on whether the incoming message is a `Pop` or a `Push` one of the two implemented methods is dispatched.
 
-If the actor tries to pass another message than `Pop` or `Push` to `stacknode(sn, msg)`, it will fail with an `ArgumentError` since only two methods are implemented.
+If the actor tries to pass another message to `stacknode`, it will fail with an `ArgumentError` since only two methods are implemented.
 
 You can implement an ``\epsilon`` default method – if you mind – returning `nothing` on every other [`Message`](@ref). Then the actor will do nothing with an unknown message and not fail.
 
 ## [Argument Composition](@id composition)
 
-`YAActL` actors have two ways
-
-- to compose the arguments to the behavior function and
-- to use its returned value.
-
-This is determined by their dispatch mode:
+`YAActL` actors have two modes to compose the arguments to the behavior function and to use its returned value:
 
 ```@docs
 Dispatch

@@ -9,9 +9,7 @@ makedocs(
         "Home" => "index.md",
         "Introduction" => "intro.md",
         "Manual" => [
-            "setup.md",
             "actors.md",
-            "links.md",
             "behavior.md",
             "patterns.md"],
         "Actor API" => "api.md",

@@ -1,6 +1,6 @@
 # YAActL.jl
 
-*Yet another Actor Library* (built in Julia)
+*Yet another Actor Library*: concurrent programming in Julia.
 
 [![stable docs](https://img.shields.io/badge/docs-stable-blue.svg)](https://pbayer.github.io/YAActL.jl/stable/)
 [![dev docs](https://img.shields.io/badge/docs-dev-blue.svg)](https://pbayer.github.io/YAActL.jl/dev)
@@ -9,13 +9,13 @@
 [![Coverage](https://codecov.io/gh/pbayer/YAActL.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/pbayer/YAActL.jl)
 [![Coverage](https://coveralls.io/repos/github/pbayer/YAActL.jl/badge.svg?branch=master)](https://coveralls.io/github/pbayer/YAActL.jl?branch=master)
 
-`YAActL` is a library for concurrent computing in Julia based on the [Actor model](https://en.wikipedia.org/wiki/Actor_model). An actor
+`YAActL` is based on the [Actor model](https://en.wikipedia.org/wiki/Actor_model). An actor
 
 - is a *task* running on a thread or a remote node which
 - receives *messages* over a *channel* and with it
 - dispatches a *behavior* function or one of its methods.
 
-Actors thus can represent concurrently different and changing behaviors of real world or computational objects *interacting* with each other. This gives us an actor system.
+Actors can represent concurrently different and changing behaviors of real world or computational objects *interacting* with each other. This makes an actor system.
 
 ## One Single Actor
 
@@ -67,7 +67,7 @@ julia> call!(myactor, 123, 456)             # try it
 
 ## Rationale
 
-1. Actors are an important concept for concurrent computing.
+1. Actors are an important concept for [concurrent computing](https://en.wikipedia.org/wiki/Concurrent_computing).
 2. There is no [actor library](https://en.wikipedia.org/wiki/Actor_model#Actor_libraries_and_frameworks) in Julia. 
 3. Julia allows to condense the actor-concept into a  smart and fast library.
 4. A community effort is needed to do it.

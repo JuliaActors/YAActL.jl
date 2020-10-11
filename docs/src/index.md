@@ -1,17 +1,14 @@
 # YAActL.jl
 
-*Yet another Actor Library* (built in Julia)
-
-`YAActL` is a library for concurrent computing in Julia based on the [Actor model](https://en.wikipedia.org/wiki/Actor_model).
+*Yet another Actor Library*: concurrent programming in Julia with the [Actor model](https://en.wikipedia.org/wiki/Actor_model).
 
 ## Overview
 
 - A [quick introduction](intro.md) to `YAActL`,
 - Manual, how to:
-    - [setup](setup.md) `YAActL`,
     - understand and use [actors](actors.md),
-    - understand [links](links.md) to actors,
-    - control actor [behavior](behavior.md).
+    - control actor [behavior](behavior.md),
+    - to do [stuff](patterns.md) with them.
 - Actor API: [detailed documentation](api.md).
 - Examples:
     - a [stack](examples/stack.md),

@@ -17,28 +17,26 @@ CurrentModule = YAActL
 - *change* their behavior upon request,
 - *update* their [internal state](@ref state) influencing how they behave.
 
-`YAActL` provides [various commands](api.md) to set, control, trigger and query actor behavior and state.
+The following provides an overview of `YAActL` actors:
 
 ## Start
 
-In the simplest case we use [`Actor`](@ref) to start an actor with a previously implemented [behavior](behavior.md) and get a [link](links.md) to it.
-
-The following [code](@ref stack_example) starts an actor with a `stack_node` behavior function and some arguments to it.
+In the simplest case we use [`Actor`](@ref) to start an actor with a previously implemented [behavior](behavior.md). The following [code](@ref stack_example) starts an actor with a `stack_node` behavior function and some arguments to it.
 
 ```julia
 mystack = Actor(stack_node, StackNode(nothing, Link()))
 ```
 
-We can now [`send!`](@ref) messages to `mystack` or do other operations on it.
+## Links
+
+When we started our actor, we got a [link](@ref links) variable `mystack` to it. This is a local or remote channel from which actors can receive messages. We can also send messages to it.
 
 ## Messages
 
-`YAActL` actors operate on [predefined messages](messages.md) all of type [`Message`](@ref). Basically there are only two functions to interact with an actor:
+`YAActL` actors operate on [predefined messages](messages.md), all of type [`Message`](@ref). They process messages asynchronously. Basically there are only two functions to interact with an actor:
 
 - [`send!`](@ref): send a message to an actor,
-- [`receive!`](@ref): receive a message,
-
-Actors process messages asynchronously.
+- [`receive!`](@ref): receive a message from an actor.
 
 A user can implement further message types. For example:
 
@@ -56,11 +54,7 @@ Those are forwarded by the actor as last arguments to its behavior function.
 
 ## Behavior
 
-Actors execute their behavior function when they receive a `Request` message or another user implemented message [^3].
-
-They pass those messages as the last argument to the behavior function. How actors compose arguments is explained in [Behaviors](behavior.md).
-
-The actor will store the return value in its internal [`res`](@ref _ACT) variable. It can be queried from the actor with [`query!`](@ref).
+Actors execute a behavior function when they receive a `Request` or another user implemented message [^3]. They pass those messages as the last argument to their behavior function. Argument composition is explained in [Behaviors](behavior.md). The actor stores the return value in its internal [`res`](@ref _ACT) variable. This can be queried from the actor with [`query!`](@ref).
 
 ## Actor Control
 
@@ -84,23 +78,25 @@ Actors can also operate on themselves or rather they send messages to themselves
 
 ## Bidirectional Messages
 
-What if you want to receive a reply from an actor? On top of the asynchronous messaging between actors there is an interface with bidirectional synchronous messages:
+What if you want to receive a reply from an actor? Then there are two possibilities:
 
-- [`request!`](@ref): send a message to an actor and receive the result.
+1. [`send!`](@ref) a message to an actor and then [`receive!`] the `Response` asynchronously,
+2. [`request!`](@ref): send a message to an actor, **block** and receive the result synchronously.
 
-The following functions use `request!` and do specific things with it:
+The following functions do this for specific duties:
 
-- [`call!`](@ref): call an actor to execute its behavior function and to return the result,
-- [`get!`](@ref): get an actor's internal state,
-- [`exec!`](@ref): tell an actor to execute a function,
-- [`query!`](@ref): prompt for the result of the last call to the behavior function.
+- [`call!`](@ref) an actor to execute its behavior function and to return the result,
+- [`get!`](@ref) an actor's internal state,
+- [`exec!`](@ref): execute an arbitrary function,
+- [`query!`](@ref) the result of the last call to the behavior function.
 
-All those functions - if you don't provide a response link - will establish a private link to an actor, **block**, receive the result and return it. You should not use blocking when you need to be strictly responsive.
+Note that you should not use blocking when you need to be strictly responsive.
 
 ## Actor State
 
-The [actor state](@ref state) is internal and is shared with its environment only for diagnostic purposes. The [API](api.md) functions above are a safe way to access actor state.
+An actor stores a behavior function and arguments to it, results of computations and more. Thus it has [state](@ref state) and its state influences how it behaves.
 
+But it does **not share** state with its environment (only for [diagnostic](diagnosis.md) purposes). The [API](api.md) functions above are a safe way to access actor state.
 
 [^1]: See: The [Actor Model](https://en.wikipedia.org/wiki/Actor_model) on Wikipedia.
 [^2]: They build on Julia's concurrency primitives  `@spawn`, `put!` and `take!` (to/from `Channel`s).

@@ -70,16 +70,14 @@ receive!
 
 ## Actor Control
 
-The following functions control actor behavior and state by sending implicit messages. To those actors don't send response messages.
+The following functions control actor behavior and state by sending implicit messages. Actors don't send a `Response` to those.
 
 ```@docs
 become!
 cast!
 exit!
-init!
 update!
 set!
-term!
 ```
 
 If a behavior function wants to control its own actor, it can use the following functions:
@@ -92,25 +90,33 @@ stop
 
 ## Bidirectional Messaging
 
-The following functions send messages to actors causing them to send a [`Response`](@ref). There are two ways to do it:
+Some messages to actors cause them to send a [`Response`](@ref) [^1]. The exchange of messages may be carried out asynchronously, or may use a synchronous "rendezvous" style in which the sender blocks until the message is received.
 
-1. Send a message with an explicit `from`-link to an actor and it will respond to it. Then you can **asynchronously** [`receive!`](@ref) the response.
-2. Send a message with an implicit link to an actor, block and wait **synchronously** for the response.
-
-There is a basic function for synchronous communication:
+`YAActL` has a primitive for synchronous communication:
 
 ```@docs
 request!
 ```
 
-The following functions operate
+The following functions support both messaging styles:
 
-- asynchronously if you provide them with a `from`-link or
-- synchronously (they block) if you don't.
+1. Send a message with an explicit `from`-link to an actor and it will respond to it. Then you can asynchronously [`receive!`](@ref) the response.
+2. Send a message with an implicit link to an actor, block, wait for the response and return it.
 
 ```@docs
 call!
-Base.get!
 exec!
+Base.get!
 query!
 ```
+
+## Actor Supervision
+
+This is not yet implemented.
+
+```@docs
+init!
+term!
+```
+
+[^1]: bidirectional [messages](messages.md) are `Call`, `Get`, `Exec` and `Query`.

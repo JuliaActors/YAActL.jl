@@ -66,31 +66,34 @@ _tuple(x) = applicable(length, x) ? Tuple(x) : (x,)
 # dispatch on Call message
 function _act(A::_ACT, ::Val{full}, msg::Call)
     res = A.bhv.f((A.bhv.args..., msg.x...)...; A.bhv.kwargs...)
-    !isnothing(res) && (A.res = _tuple(res))
+    A.res = _tuple(res)
     send!(msg.from, Response(res, A.link))
 end
 function _act(A::_ACT, ::Val{state}, msg::Call)
     res = A.bhv.f((A.sta..., msg.x...)...; A.bhv.kwargs...)
-    !isnothing(res) && (A.sta = A.res = _tuple(res))
+    A.res = _tuple(res)
+    !isnothing(res) && (A.sta = A.res)
     send!(msg.from, Response(res, A.link))
 end
 # dispatch on Cast message
 function _act(A::_ACT, ::Val{full},  msg::Cast)
     res = A.bhv.f((A.bhv.args..., msg.x...)...; A.bhv.kwargs...)
-    !isnothing(res) && (A.res = _tuple(res))
+    A.res = _tuple(res)
 end
 function _act(A::_ACT, ::Val{state}, msg::Cast)
     res = A.bhv.f((A.sta..., msg.x...)...; A.bhv.kwargs...)
-    !isnothing(res) && (A.sta = A.res = _tuple(res))
+    A.res = _tuple(res)
+    !isnothing(res) && (A.sta = A.res)
 end
 # dispatch on other user defined messages
 function _act(A::_ACT, ::Val{full}, msg::M) where M<:Message
     res = A.bhv.f((A.bhv.args..., msg)...; A.bhv.kwargs...)
-    !isnothing(res) && (A.res = _tuple(res))
+    A.res = _tuple(res)
 end
 function _act(A::_ACT, ::Val{state}, msg::M) where M<:Message
     res = A.bhv.f((A.sta..., msg)...; A.bhv.kwargs...)
-    !isnothing(res) && (A.sta = A.res = _tuple(res))
+    A.res = _tuple(res)
+    !isnothing(res) && (A.sta = A.res)
 end
 
 # this is the actor loop
@@ -107,23 +110,26 @@ end
 
 """
 ```
-Actor([lp::LinkParams], bhv::Function, args...; kwargs...)
-Actor(pid::Int, bhv::Function, args...; kwargs...)
+Actor([lp::LinkParams], bhv::Function, args1...; kwargs...)
+Actor(pid::Int, bhv::Function, args1...; kwargs...)
 ```
-Create a new actor. Start a task executing repeatedly the behavior `bhv`. The actor
-listens to messages `msg` sent over the returned link and executes
-`bhv(args..., msg, kwargs)` for each message. The actor stops if sent `Stop()`.
+Create a new actor. Start a task listening to messages `msg` 
+sent over the returned link and executing `bhv(args1..., msg; kwargs...)` 
+for each message. The actor stops if sent [`Stop()`](@ref).
 
 # Arguments
-- `[lp::LinkParams]`: optional parameters for creating the actor,
-- `pid::Int`: create the actor on process `pid`,
-- `bhv::Function`: function implementing the actor's behavior,
-- `args...`: arguments to `bhv`, (without `msg`)
+- `[lp::LinkParams]`: parameters for creating the actor,
+- `pid::Int`: process `pid` to create the actor on, this can 
+    also be given with `lp`,
+- `bhv`: a function implementing the actor's behavior,
+- `args1...`: first arguments to `bhv` (without possible `msg` arguments),
 - `kwargs...`: keyword arguments to `bhv`.
 
 # Returns
 - a [`Link`](@ref) to a locally created actor or 
 - an [`RLink`](@ref) to a remote actor.
+
+see also: [`LinkParams`](@ref)
 """
 function Actor(lp::LinkParams, bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N}
     if lp.pid == myid()

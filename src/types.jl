@@ -26,9 +26,9 @@ A `Channel{Message}` type for communicating with local actors.
 
 !!! warning "Use buffered channels!"
 
-    In actor systems we always use buffered links to avoid blocking.
+    In actor systems we use buffered links to avoid blocking.
     Responding on an unbuffered or full link causes an actor to block.
-    `Link()` creates an unbuffered Channel, use `Link(32)` or
+    `Link()` creates an unbuffered Channel. Use `Link(32)` or
     [`newLink()`](@ref newLink) instead!
 
 # Example
@@ -46,7 +46,7 @@ A `RemoteChannel{Link}` type for communicating with remote actors.
 const RLink = RemoteChannel{Link}
 
 """
-A `Union{Link, RLink}` type for communicating with actors. 
+A `Union{Link, RLink}` type including local and remote links. 
 """
 const LINK = Union{Link, RLink}
 

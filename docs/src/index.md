@@ -1,6 +1,6 @@
 # YAActL.jl
 
-*Yet another Actor Library*: concurrent programming in Julia with the [Actor model](https://en.wikipedia.org/wiki/Actor_model).
+*Yet another Actor Library*, concurrent programming in Julia with the [Actor model](https://en.wikipedia.org/wiki/Actor_model).
 
 ## Overview
 
@@ -8,7 +8,7 @@
 - Manual, how to:
     - understand and use [actors](actors.md),
     - control actor [behavior](behavior.md),
-    - to do [stuff](patterns.md) with them.
+    - do [stuff](patterns.md) with them.
 - Actor API: [detailed documentation](api.md).
 - Examples:
     - a [stack](examples/stack.md),

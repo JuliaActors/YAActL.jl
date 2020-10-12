@@ -100,7 +100,11 @@ and the actor calls
 - `bhv((sta..., args2...)...)` or
 - `bhv((sta..., msg)...)` respectively
 
-and updates `sta` with the returned value. At the next call the behavior `bhv` gets dispatched with the updated status and the new message.
+and updates `sta` with the returned value `y`. At the next call the behavior `bhv` gets dispatched with the updated status and the new message.
+
+!!! note "Update occurs only if `!isnothing(y)`."
+
+    The actor updates `sta` only if its behavior function returns something rather than `nothing`. If you want to avoid updating `sta`, let it `return nothing`. 
 
 ## Keyword Arguments
 

@@ -39,8 +39,8 @@ export  Message, Response, Request, Timeout, Func, Args,
         send!, request!, receive!,
         Actor, become, stop,  
         Dispatch, full, state,
-        become!, call!, cast!, exec!, exit!, get!, init!, 
+        become!, call!, cast!, exec!, exit!, init!, 
         query!, self, set!, term!, update!, 
-        register!, taskstate
+        register!, info
 
 end

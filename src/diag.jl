@@ -28,12 +28,12 @@ has failed.
 Base.istaskfailed(lks::Vector{Link}) = any(lk->istaskfailed(lk), lks)
 
 """
-	taskstate(lk::Link)
+	info(lk::Link)
 
 Return the state (eventually the stacktrace) of a task associated 
 with `lk`.
 """
-function taskstate(lk::Link)
+function info(lk::Link)
 	if istaskfailed(lk)
 		return hasfield(typeof(lk.excp), :task) ? lk.excp.task : lk.excp
 	else

@@ -94,16 +94,6 @@ struct Exec{F,L} <: Message
 end
 
 """
-    Get(from::LINK)
-
-A synchronous [`Message`](@ref) to an actor to send a 
-`Response` message with its internal state to `from`.
-"""
-struct Get{L} <: Message
-    from::L
-end
-
-"""
     Init(f::Func)
 
 A [`Message`](@ref) to an actor to execute the given
@@ -115,12 +105,16 @@ struct Init <: Message
 end
 
 """
-    Query(from::LINK)
+    Query(s::Symbol, from::LINK)
 
-A synchronous [`Message`](@ref) to an actor to return the
-result of the last execution of the behavior function.
+A [`Message`](@ref) to an actor to send a 
+`Response` message with one of its internal state 
+variables `s` to `from`.
+
+- `s::Symbol` can be one of `:sta`, `:res`, `:bhv`, `:dsp`.
 """
 struct Query{L} <: Message
+    x::Symbol
     from::L
 end
 
@@ -145,18 +139,6 @@ struct Response{T,L} <: Message
 
     Response(y, from::LK=self()) where LK<:LINK =
         new{typeof(y),typeof(from)}(y, from)
-end
-
-"""
-```
-Set(dsp::Dispatch)
-Set(lk::LINK)
-```
-An asynchronous [`Message`](@ref) to an actor to set its 
-[`Dispatch`](@ref) behavior or its [`LINK`](@ref).
-"""
-struct Set{T} <: Message
-    x::T
 end
 
 """
@@ -189,12 +171,14 @@ A return value to signal that a timeout has occurred.
 struct Timeout <: Message end
 
 """
-    Update(x)
+    Update(s::Symbol, x)
 
 An asynchronous [`Message`](@ref) to an actor to update its 
-internal state to `x`. If `x` is a [`Args`](@ref) then the
-arguments to the behavior function are updated.
+internal state `s` to `x`.
+
+- `s::Symbol` can be one of `:sta`, `:dsp`, `:arg`, `:lnk`.
 """
 struct Update{T} <: Message
+    s::Symbol
     x::T
 end

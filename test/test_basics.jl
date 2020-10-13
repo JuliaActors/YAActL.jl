@@ -43,7 +43,7 @@ sleep(0.2)
 @test a[1] == 0
 
 @test !istaskfailed(A)
-@test taskstate(A) == :runnable
+@test info(A) == :runnable
 
 exit!(A)
 sleep(0.1)
@@ -53,5 +53,5 @@ B = Actor(fail)
 send!(B, Incr(0))
 sleep(0.1)
 @test istaskfailed(B)
-s = taskstate(B)
+s = info(B)
 @test s.exception isa UndefVarError

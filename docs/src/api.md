@@ -1,5 +1,9 @@
 # Actor API
 
+```@meta
+CurrentModule = YAActL
+```
+
 ## Installation
 
 ```@docs
@@ -76,8 +80,8 @@ The following functions control actor behavior and state by sending implicit mes
 become!
 cast!
 exit!
-update!
 set!
+update!
 ```
 
 If a behavior function wants to control its own actor, it can use the following functions:
@@ -106,7 +110,6 @@ The following functions support both messaging styles:
 ```@docs
 call!
 exec!
-Base.get!
 query!
 ```
 

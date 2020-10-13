@@ -102,9 +102,9 @@ and the actor calls
 
 and updates `sta` with the returned value `y`. At the next call the behavior `bhv` gets dispatched with the updated status and the new message.
 
-!!! note "Update occurs only if `!isnothing(y)`."
+!!! note "Update occurs only if the behavior returns something."
 
-    The actor updates `sta` only if its behavior function returns something rather than `nothing`. If you want to avoid updating `sta`, let it `return nothing`. 
+    The actor updates `sta` only if its behavior function returns something rather than `nothing`. If you want your behavior to avoid updating `sta`, let it `return nothing`. 
 
 ## Keyword Arguments
 

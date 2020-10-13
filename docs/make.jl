@@ -15,7 +15,9 @@ makedocs(
         "Actor API" => "api.md",
         "Examples" => [
             "examples/stack.md",
-            "examples/factorial.md"],
+            "examples/factorial.md",
+            "examples/state-machines.md",
+            "examples/pmap.md"],
         "Internals" => [
             "messages.md",
             "internals.md",

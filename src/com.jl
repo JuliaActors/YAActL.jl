@@ -139,8 +139,8 @@ function request!(lk::LK, msg::M; full=false, timeout::Real=5.0) where {LK<:LINK
 end
 function request!(lk::LK, Msg::Type{<:Message}, args...; kwargs...) where LK<:LINK 
     me = lk isa Link ? Link(1) : RemoteChannel(()->Link(1))
-    if Msg == Exec
-        request!(lk, Exec(args..., me); kwargs...)
+    if Msg in (Exec, Query)
+        request!(lk, Msg(args..., me); kwargs...)
     else
         request!(lk, isempty(args) ? Msg(me) : Msg(args, me); kwargs...)
     end

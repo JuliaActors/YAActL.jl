@@ -20,7 +20,7 @@ subx(x, y, sub; z=0) = x+y+z - sub
 
 A = Actor(lp, incx, a, y=b, z=c)
 sleep(0.1)
-@test taskstate(A) == :runnable
+@test info(A) == :runnable
 
 # test diag and actor startup, become! (implicitly)
 act = YAActL.diag!(A)
@@ -31,7 +31,7 @@ sleep(0.1)
 @test act.bhv.args == (1,)
 @test act.bhv.kwargs == pairs((y=1,z=1))
 
-# test explicity become!
+# test explicitly become!
 become!(A, subx, a, b, z=c)
 sleep(0.1)
 @test act.bhv.f == subx
@@ -47,38 +47,41 @@ sleep(0.1)
 update!(A, 1, 2, 3)
 sleep(0.1)
 @test act.sta == (1,2,3)
-update!(A, Args(2,3, x=1, y=2))
+update!(A, Args(2,3, x=1, y=2), s=:arg)
 sleep(0.1)
 @test act.bhv.args == (2,3)
 @test act.bhv.kwargs == pairs((x=1,y=2,z=1))
 
-# test get
-@test get!(A) == (1,2,3)
+# test query!
+@test query!(A) == (1,2,3)
+@test query!(A, :res) == ()
+@test query!(A, :bhv) == subx
+@test query!(A, :dsp) == state
 
 # test call!
 become!(A, incx, a, y=b, z=c)
 set!(A, full)
 @test call!(A, 1) == 4
-@test query!(A) == 4
-@test get!(A) == (1,2,3)
+@test query!(A, :res) == 4
+@test query!(A) == (1,2,3)
 set!(A, state)
 update!(A, 1)
-update!(A, Args(y=2,z=2))
+update!(A, Args(y=2,z=2), s=:arg)
 @test call!(A, 2) == 7
-@test get!(A) == 7
 @test query!(A) == 7
+@test query!(A, :res) == 7
 
 # test cast!
 update!(A, 2)
-update!(A, Args(y=1,z=1))
+update!(A, Args(y=1,z=1), s=:arg)
 cast!(A, 2)
-@test get!(A) == 6
 @test query!(A) == 6
+@test query!(A, :res) == 6
 set!(A, full)
-update!(A, Args(a, y=3,z=3))
+update!(A, Args(a, y=3,z=3), s=:arg)
 cast!(A, 3)
-@test query!(A) == 10
-@test get!(A) == 6
+@test query!(A, :res) == 10
+@test query!(A) == 6
 
 # test exec!
 @test exec!(A, Func(cos, 2pi)) == 1
@@ -86,4 +89,4 @@ cast!(A, 3)
 # test exit!
 exit!(A)
 sleep(0.1)
-@test taskstate(A).state == :closed
+@test info(A).state == :closed

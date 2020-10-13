@@ -54,7 +54,7 @@ Those are forwarded by the actor as last arguments to its behavior function.
 
 ## Behavior
 
-Actors execute a behavior function when they receive a `Request` or another user implemented message [^3]. They pass those messages as the last argument to their behavior function. Argument composition is explained in [Behaviors](behavior.md). The actor stores the return value in its internal [`res`](@ref _ACT) variable. This can be queried from the actor with [`query!`](@ref).
+Actors execute a behavior function when they receive a `Request` or another user implemented message [^3]. They pass those messages as the last argument to their behavior function. Argument composition is explained in [Behaviors](behavior.md). The actor stores the return value in its internal [`res`](@ref _ACT) variable. This can be queried from the actor with [`query!(lk, :res)`](@ref query!).
 
 ## Actor Control
 
@@ -86,9 +86,8 @@ What if you want to receive a reply from an actor? Then there are two possibilit
 The following functions do this for specific duties:
 
 - [`call!`](@ref) an actor to execute its behavior function and to return the result,
-- [`get!`](@ref) an actor's internal state,
 - [`exec!`](@ref): execute an arbitrary function,
-- [`query!`](@ref) the result of the last call to the behavior function.
+- [`query!`](@ref) an actor's internal state variable.
 
 Note that you should not use blocking when you need to be strictly responsive.
 

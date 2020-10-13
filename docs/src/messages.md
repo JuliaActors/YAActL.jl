@@ -31,10 +31,8 @@ Call
 Cast
 Diag
 Exec
-Get
 Init
 Query
-Set
 Stop
 Term
 Update

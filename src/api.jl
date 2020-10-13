@@ -94,21 +94,6 @@ function, it calls it with `code` as last argument.
 exit!(lk::LK, code=0) where LK<:LINK = send!(lk, Stop(code))
 
 """
-```
-get!(lk::LINK, from::LINK)
-get!(lk::LINK; timeout::Real=5.0)
-```
-
-Ask the `lk` actor to send a [`Response`](@ref) message to
-`from` with its internal state [`sta`](@ref _ACT). 
-
-If `from` is omitted, `get!` blocks and returns the response.
-In that case there is a `timeout`.
-"""
-Base.get!(lk::L1, from::L2) where {L1<:LINK, L2<:LINK} = send!(lk, Get(from))
-Base.get!(lk::LK; timeout::Real=5.0) where LK<:LINK = request!(lk, Get, timeout=timeout)
-
-"""
     init!(lk::LINK, f::Function, args...; kwargs...)
 
 Tell an actor `lk` to save the function `f` with the given 
@@ -121,25 +106,32 @@ The `init` function will be called at actor restart.
 !!! note "This behavior is not yet implemented!"
 
     It is needed for supervision.
-
 """
 init!(lk::LK, f::F, args...; kwargs...) where {LK<:LINK, F<:Function} = 
     send!(lk, Init(Func(f, args...; kwargs...)))
 
 """
 ```
-query!(lk::LINK, [from::LINK])
-query!(lk::LINK; timeout::Real=5.0)
+query!(lk::LINK, from::LINK, s::Symbol)
+query!(lk::LINK, s::Symbol; timeout::Real=5.0)
 ```
-Ask the `lk` actor to send a [`Response`](@ref) with the 
-last result of the behavior function to `from`.
 
-If `from` is omitted `query!` blocks and returns the response.
+Ask the `lk` actor to send a [`Response`](@ref) message to
+`from` with an internal state variable `s`. 
+
+If `from` is omitted, `query!` blocks and returns the response.
 In that case there is a `timeout`.
-"""
-query!(lk::L1, from::L2) where {L1<:LINK, L2<:LINK} = send!(lk, Query(from))
-query!(lk::LK; timeout::Real=5.0) where LK<:LINK = request!(lk, Query, timeout=timeout)
 
+- `s::Symbol` can be one of `:sta`, `:res`, `:bhv`, `:dsp`.
+
+# Examples
+
+```julia
+```
+"""
+query!(lk::L1, from::L2, s::Symbol=:sta) where {L1<:LINK, L2<:LINK} = send!(lk, Query(s, from))
+query!(lk::LK, s::Symbol=:sta; timeout::Real=5.0) where LK<:LINK = request!(lk, Query, s, timeout=timeout)
+    
 """
     self()
 
@@ -157,8 +149,7 @@ Set the `lk` actor's [`Dispatch`](@ref) to `dsp`.
 ```julia
 ```
 """
-set!(lk::LK, dsp::Dispatch) where LK<:LINK = send!(lk, Set(dsp))
-set!(lk::LK) where LK<:LINK = send!(lk, Set(lk))
+set!(lk::LK, dsp::Dispatch) where LK<:LINK = update!(lk, dsp, s=:dsp)
 
 """
     term!(lk::LINK, f::Function, args1...; kwargs...)
@@ -176,18 +167,22 @@ term!(lk::LK, f::F, args...; kwargs...) where {LK<:LINK, F<:Function} =
     send!(lk, Term(Func(f, args...; kwargs...)))
 
 """
-    update!(lk::LK, args...)
+    update!(lk::LK, args...; s::Symbol=:sta)
 
-Update the `lk` actor's internal state with `args...`.
+Update the `lk` actor's internal state `s` with `args...`.
 
-It can be called with [`Args`](@ref) to update the stored
-arguments to the behavior function. If `Args` has keyword 
-arguments, they are merged with existing keyword arguments 
-to the behavior function.
+# Arguments
+- `args...`: arguments to update the choosen state with,
+- `s::Symbol`: can be one of `:sta`, `:dsp`, `:arg`, `:lnk`.
 
-# Example
+*Note:* If you want to update the stored arguments to the 
+behavior function with `s=:arg`, you must pass an [`Args`](@ref) 
+argument. If `Args` has keyword arguments, they are merged 
+with existing keyword arguments to the behavior function.
 
+# Examples
 ```julia
 ```
 """
-update!(lk::LK, args...) where LK<:LINK = send!(lk, Update(args))
+update!(lk::LK, args...; s::Symbol=:sta) where LK<:LINK = 
+    send!(lk, Update(s, args))

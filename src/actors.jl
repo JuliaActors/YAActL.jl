@@ -34,21 +34,14 @@ mutable struct _ACT
         new(full, (), (), Func(), nothing, nothing, lk)
 end
 
-# update methods
-_update!(A::_ACT, args...) = A.sta = args
-function _update!(A::_ACT, args::Args)
-    A.bhv = Func(A.bhv.f, args.args...;
-        pairs((; merge(A.bhv.kwargs, args.kwargs)...))...)
-end
 _terminate!(A::_ACT, code) = !isnothing(A.term) && A.term.f((A.term.args..., code)...; kwargs...)
 
 # actor dispatch on messages
 _act(A::_ACT, msg::Set)    = _act(A, msg, msg.x)
 _act(A::_ACT, msg::Become) = A.bhv = msg.x
 _act(A::_ACT, msg::Exec)   = send!(msg.from, Response(msg.func.f(msg.func.args...; msg.func.kwargs...), A.link))
-_act(A::_ACT, msg::Update) = _update!(A, msg.x...)
-_act(A::_ACT, msg::Get)    = send!(msg.from, Response(A.sta, A.link))
-_act(A::_ACT, msg::Query)  = send!(msg.from, Response(A.res, A.link))
+_act(A::_ACT, msg::Update) = _act(A, msg, Val(msg.s))
+_act(A::_ACT, msg::Query)  = _act(A, msg, Val(msg.x))
 _act(A::_ACT, msg::Diag)   = send!(msg.from, Response(A, A.link))
 function _act(A::_ACT, msg::Init)
     A.init = msg.x
@@ -57,11 +50,23 @@ end
 _act(A::_ACT, msg::Stop) = _terminate!(A, msg.x)
 _act(A::_ACT, msg::M) where M<:Message = _act(A, Val(A.dsp), msg)
 
-# dispatch on Set message
-_act(A::_ACT, ::Set, dsp::Dispatch) = A.dsp = dsp
-_act(A::_ACT, ::Set, lk::LK) where LK<:LINK = A.link = lk
+# dispatch on Query message
+_act(A::_ACT, msg::Query, ::Val{:sta}) = send!(msg.from, Response(A.sta, A.link))
+_act(A::_ACT, msg::Query, ::Val{:res}) = send!(msg.from, Response(A.res, A.link))
+_act(A::_ACT, msg::Query, ::Val{:bhv}) = send!(msg.from, Response(A.bhv.f, A.link))
+_act(A::_ACT, msg::Query, ::Val{:dsp}) = send!(msg.from, Response(A.dsp, A.link))
+_act(A::_ACT, msg::Query, x) = send!(msg.from, Response("$x not available", A.link))
 
 _tuple(x) = applicable(length, x) ? Tuple(x) : (x,)
+
+# dispatch on Update message
+_act(A::_ACT, msg::Update, ::Val{:sta}) = A.sta = _tuple(msg.x)
+_act(A::_ACT, msg::Update, ::Val{:dsp}) = A.dsp = msg.x[1]
+_act(A::_ACT, msg::Update, ::Val{:lnk}) = A.link = msg.x[1]
+_act(A::_ACT, msg::Update, ::Val{:arg}) =
+    A.bhv = Func(A.bhv.f, msg.x[1].args...;
+        pairs((; merge(A.bhv.kwargs, msg.x[1].kwargs)...))...)
+_act(A::_ACT, msg::Update, x) = nothing
 
 # dispatch on Call message
 function _act(A::_ACT, ::Val{full}, msg::Call)
@@ -136,7 +141,7 @@ function Actor(lp::LinkParams, bhv::F, args::Vararg{Any, N}; kwargs...) where {F
         lk = Link(_act, lp.size, taskref=lp.taskref, spawn=lp.spawn)
     else
         lk = RemoteChannel(()->Link(_act, lp.size, taskref=lp.taskref, spawn=lp.spawn), lp.pid)
-        set!(lk) # set its link entry to remote
+        update!(lk, lk, s=:lnk) # set its link entry to remote
     end
     become!(lk, bhv, args...; kwargs...)
     return lk

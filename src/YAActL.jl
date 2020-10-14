@@ -22,7 +22,7 @@ pkg> add("https://github.com/pbayer/YAActL.jl")
 module YAActL
 
 "Gives the package version."
-const version = v"0.1.2"
+const version = v"0.2.0"
 
 using Distributed
 

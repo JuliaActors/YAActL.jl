@@ -61,7 +61,7 @@ julia> @time begin
 now with `Distributed`:
 
 ```julia
-julia> addprocs(4);   # add processes 
+julia> addprocs(4);   # add processes
 
 julia> @everywhere function comp(i)  # a "heavy" computation
            sleep(2)

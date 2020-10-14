@@ -23,15 +23,15 @@ see also: [`Dispatch`](@ref), [`Func`](@ref), [`LINK`](@ref)
 """
 mutable struct _ACT
     dsp::Dispatch   
-    sta::Tuple
-    res::Tuple
+    sta::Any
+    res::Any
     bhv::Func
     init::Union{Nothing,Func}
     term::Union{Nothing,Func}
     link::LINK
 
     _ACT(lk::LK) where LK<:LINK = 
-        new(full, (), (), Func(), nothing, nothing, lk)
+        new(full, nothing, nothing, Func(), nothing, nothing, lk)
 end
 
 _terminate!(A::_ACT, code) = !isnothing(A.term) && A.term.f((A.term.args..., code)...; kwargs...)
@@ -57,47 +57,47 @@ _act(A::_ACT, msg::Query, ::Val{:bhv}) = send!(msg.from, Response(A.bhv.f, A.lin
 _act(A::_ACT, msg::Query, ::Val{:dsp}) = send!(msg.from, Response(A.dsp, A.link))
 _act(A::_ACT, msg::Query, x) = send!(msg.from, Response("$x not available", A.link))
 
-_tuple(x) = applicable(length, x) ? Tuple(x) : (x,)
-
 # dispatch on Update message
-_act(A::_ACT, msg::Update, ::Val{:sta}) = A.sta = _tuple(msg.x)
-_act(A::_ACT, msg::Update, ::Val{:dsp}) = A.dsp = msg.x[1]
-_act(A::_ACT, msg::Update, ::Val{:lnk}) = A.link = msg.x[1]
+_act(A::_ACT, msg::Update, ::Val{:sta}) = A.sta = msg.x
+_act(A::_ACT, msg::Update, ::Val{:dsp}) = A.dsp = msg.x
+_act(A::_ACT, msg::Update, ::Val{:lnk}) = A.link = msg.x
 _act(A::_ACT, msg::Update, ::Val{:arg}) =
-    A.bhv = Func(A.bhv.f, msg.x[1].args...;
-        pairs((; merge(A.bhv.kwargs, msg.x[1].kwargs)...))...)
+    A.bhv = Func(A.bhv.f, msg.x.args...;
+        pairs((; merge(A.bhv.kwargs, msg.x.kwargs)...))...)
 _act(A::_ACT, msg::Update, x) = nothing
+
+_tuple(x) = applicable(length, x) ? Tuple(x) : (x,)
 
 # dispatch on Call message
 function _act(A::_ACT, ::Val{full}, msg::Call)
     res = A.bhv.f((A.bhv.args..., msg.x...)...; A.bhv.kwargs...)
-    A.res = _tuple(res)
+    A.res = res
     send!(msg.from, Response(res, A.link))
 end
 function _act(A::_ACT, ::Val{state}, msg::Call)
-    res = A.bhv.f((A.sta..., msg.x...)...; A.bhv.kwargs...)
-    A.res = _tuple(res)
+    res = A.bhv.f((A.sta, msg.x...)...; A.bhv.kwargs...)
+    A.res = res
     !isnothing(res) && (A.sta = A.res)
     send!(msg.from, Response(res, A.link))
 end
 # dispatch on Cast message
 function _act(A::_ACT, ::Val{full},  msg::Cast)
     res = A.bhv.f((A.bhv.args..., msg.x...)...; A.bhv.kwargs...)
-    A.res = _tuple(res)
+    A.res = res
 end
 function _act(A::_ACT, ::Val{state}, msg::Cast)
-    res = A.bhv.f((A.sta..., msg.x...)...; A.bhv.kwargs...)
-    A.res = _tuple(res)
+    res = A.bhv.f((A.sta, msg.x...)...; A.bhv.kwargs...)
+    A.res = res
     !isnothing(res) && (A.sta = A.res)
 end
 # dispatch on other user defined messages
 function _act(A::_ACT, ::Val{full}, msg::M) where M<:Message
     res = A.bhv.f((A.bhv.args..., msg)...; A.bhv.kwargs...)
-    A.res = _tuple(res)
+    A.res = res
 end
 function _act(A::_ACT, ::Val{state}, msg::M) where M<:Message
-    res = A.bhv.f((A.sta..., msg)...; A.bhv.kwargs...)
-    A.res = _tuple(res)
+    res = A.bhv.f((A.sta, msg)...; A.bhv.kwargs...)
+    A.res = res
     !isnothing(res) && (A.sta = A.res)
 end
 

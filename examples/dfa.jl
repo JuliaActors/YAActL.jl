@@ -13,7 +13,6 @@
 #      p  |  p  |  q  |  p
 #    * r  |  r  |  r  |  r
 #
-
 using YAActL
 
 s(::Val{'b'}) = become(q)
@@ -29,11 +28,11 @@ r(x) = nothing
 mydfa = Actor(s)
 
 function check(lk::Link, str::String)
-    become!(lk, s)         # start behavior
+    become!(lk, s)          # start behavior
     foreach(str) do c
-        cast!(lk, Val(c))  # send all chars
+        cast!(lk, Val(c))   # send all chars to the actor
     end
-    get!(lk, :bhv) == r    # check the actors behavior
+    query!(lk, :bhv) == r   # check the actors behavior
 end
 
 check(mydfa, "baab")        # false

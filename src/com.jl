@@ -131,8 +131,6 @@ function request!(lk::LK, msg::M; full=false, timeout::Real=5.0) where {LK<:LINK
     resp = receive!(msg.from, timeout=timeout)
     if resp isa Timeout || full
         return resp
-    elseif resp.y isa Tuple
-        return length(resp.y) == 1 ? resp.y[1] : resp.y
     else
         return resp.y
     end

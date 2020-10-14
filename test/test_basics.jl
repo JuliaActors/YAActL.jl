@@ -34,7 +34,7 @@ act = YAActL.diag!(A)
 
 send!(A, Incr(10))
 sleep(0.1)
-@test act.res == (10,)
+@test act.res == 10
 @test a[1] == 10
 
 send!(A, Decr(5))

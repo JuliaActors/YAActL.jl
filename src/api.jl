@@ -167,22 +167,22 @@ term!(lk::LK, f::F, args...; kwargs...) where {LK<:LINK, F<:Function} =
     send!(lk, Term(Func(f, args...; kwargs...)))
 
 """
-    update!(lk::LK, args...; s::Symbol=:sta)
+    update!(lk::LK, x; s::Symbol=:sta)
 
 Update the `lk` actor's internal state `s` with `args...`.
 
 # Arguments
-- `args...`: arguments to update the choosen state with,
+- `x`: value/variable to update the choosen state with,
 - `s::Symbol`: can be one of `:sta`, `:dsp`, `:arg`, `:lnk`.
 
 *Note:* If you want to update the stored arguments to the 
 behavior function with `s=:arg`, you must pass an [`Args`](@ref) 
-argument. If `Args` has keyword arguments, they are merged 
+to `x`. If `Args` has keyword arguments, they are merged 
 with existing keyword arguments to the behavior function.
 
 # Examples
 ```julia
 ```
 """
-update!(lk::LK, args...; s::Symbol=:sta) where LK<:LINK = 
-    send!(lk, Update(s, args))
+update!(lk::LK, x; s::Symbol=:sta) where LK<:LINK = 
+    send!(lk, Update(s, x))

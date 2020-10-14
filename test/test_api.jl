@@ -26,7 +26,7 @@ sleep(0.1)
 act = YAActL.diag!(A)
 sleep(0.1)
 @test act.dsp == full
-@test act.sta == Tuple{}()
+@test act.sta == nothing
 @test act.bhv.f == incx
 @test act.bhv.args == (1,)
 @test act.bhv.kwargs == pairs((y=1,z=1))
@@ -44,7 +44,7 @@ sleep(0.1)
 @test act.dsp == state
 
 # test update!
-update!(A, 1, 2, 3)
+update!(A, (1, 2, 3))
 sleep(0.1)
 @test act.sta == (1,2,3)
 update!(A, Args(2,3, x=1, y=2), s=:arg)
@@ -54,7 +54,7 @@ sleep(0.1)
 
 # test query!
 @test query!(A) == (1,2,3)
-@test query!(A, :res) == ()
+@test query!(A, :res) == nothing
 @test query!(A, :bhv) == subx
 @test query!(A, :dsp) == state
 

@@ -127,6 +127,35 @@ In that case there is a `timeout`.
 # Examples
 
 ```julia
+julia> f(x, y; u=0, v=0) = x+y+u+v  # implement a behavior
+f (generic function with 1 method)
+
+julia> fact = Actor(f, 1)     # start an actor with it
+Channel{Message}(sz_max:32,sz_curr:0)
+
+julia> cast!(fact, 1)         # cast a second parameter to it
+YAActL.Cast{Tuple{Int64}}((1,))
+
+julia> query!(fact, :res)     # query the result
+2
+
+julia> query!(fact, :bhv)     # query the behavior
+f (generic function with 1 method)
+
+julia> set!(fact, state)      # set dispatch mode
+YAActL.Update{Dispatch}(:dsp, state)
+
+julia> query!(fact, :dsp)     # query the dispatch mode
+state::Dispatch = 1
+
+julia> update!(fact, 10)      # update the state
+YAActL.Update{Int64}(:sta, 10)
+
+julia> query!(fact)           # query the state variable
+10
+
+julia> call!(fact, 1)
+11
 ```
 """
 query!(lk::L1, from::L2, s::Symbol=:sta) where {L1<:LINK, L2<:LINK} = send!(lk, Query(s, from))
@@ -143,11 +172,6 @@ self() = task_local_storage("ACT").link
     set!(lk::LINK, dsp::Dispatch)
 
 Set the `lk` actor's [`Dispatch`](@ref) to `dsp`.
-
-# Example
-
-```julia
-```
 """
 set!(lk::LK, dsp::Dispatch) where LK<:LINK = update!(lk, dsp, s=:dsp)
 
@@ -167,22 +191,37 @@ term!(lk::LK, f::F, args...; kwargs...) where {LK<:LINK, F<:Function} =
     send!(lk, Term(Func(f, args...; kwargs...)))
 
 """
-    update!(lk::LK, x; s::Symbol=:sta)
-
+```
+update!(lk::LINK, x; s::Symbol=:sta)
+update!(lk::LINK, arg::Args)
+```
 Update the `lk` actor's internal state `s` with `args...`.
 
 # Arguments
 - `x`: value/variable to update the choosen state with,
+- `arg::Args`: arguments to update,
 - `s::Symbol`: can be one of `:sta`, `:dsp`, `:arg`, `:lnk`.
 
 *Note:* If you want to update the stored arguments to the 
 behavior function with `s=:arg`, you must pass an [`Args`](@ref) 
-to `x`. If `Args` has keyword arguments, they are merged 
+to `arg`. If `Args` has keyword arguments, they are merged 
 with existing keyword arguments to the behavior function.
 
-# Examples
+# Example
 ```julia
+julia> update!(fact, 5)       # note that fact is in state dispatch
+YAActL.Update{Int64}(:sta, 5)
+
+julia> call!(fact, 5)         # call it with 5
+10
+
+julia> update!(fact, Args(0, u=5));  # update arguments
+
+julia> call!(fact, 5)         # add the last result, 5 and u=5
+20
 ```
 """
 update!(lk::LK, x; s::Symbol=:sta) where LK<:LINK = 
     send!(lk, Update(s, x))
+update!(lk::LK, arg::Args) where LK<:LINK =
+    send!(lk, Update(:arg, arg))

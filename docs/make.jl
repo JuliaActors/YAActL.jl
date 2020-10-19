@@ -22,7 +22,8 @@ makedocs(
             "messages.md",
             "internals.md",
             "diagnosis.md"],
-        "References" => "references.md"
+        "References" => "references.md",
+        "Index" => "_index.md"
     ]
 )
 

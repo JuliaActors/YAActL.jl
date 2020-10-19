@@ -135,6 +135,18 @@ for each message. The actor stops if sent [`Stop()`](@ref).
 - an [`RLink`](@ref) to a remote actor.
 
 see also: [`LinkParams`](@ref)
+
+# Example
+
+```julia
+julia> using YAActL, .Threads
+
+julia> act1 = Actor(threadid)               # start an actor who gives its threadid
+Channel{Message}(sz_max:32,sz_curr:0)
+
+julia> call!(act1)                          # call it
+1
+```
 """
 function Actor(lp::LinkParams, bhv::F, args::Vararg{Any, N}; kwargs...) where {F<:Function,N}
     if lp.pid == myid()

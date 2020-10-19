@@ -132,6 +132,10 @@ end
     Response(y, from::LINK=self())
 
 A [`Message`](@ref) representing a response to requests.
+
+# Fields
+- `y`: response content,
+- `from::LINK`: sender link.
 """
 struct Response{T,L} <: Message
     y::T

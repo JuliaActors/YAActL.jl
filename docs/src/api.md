@@ -72,6 +72,14 @@ send!
 receive!
 ```
 
+## Dispatch mode
+
+Actors have a dispatch mode:
+
+```@docs
+Dispatch
+```
+
 ## Actor Control
 
 The following functions control actor behavior and state by sending implicit messages. Actors don't send a `Response` to those.

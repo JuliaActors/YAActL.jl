@@ -1,12 +1,12 @@
 # State Machines
 
-There are various ways to implement state machines with actors. The following examples are only to illustrate how actors operate as state machines and are not to propose actual implementations.
+There are various ways to implement state machines with actors. The following examples illustrate how actors operate as state machines and are not to propose actual implementations.
 
 ## DFAs, behavior-switch
 
-One of the simplest ways to implement a finite state machine is to implement a behavior function with appropriate transition methods for each state-event combination.
+Behavior-switch is probably the simplest way to implement a finite state machine with an actor.
 
-We take a [deterministic finite automaton](https://en.wikipedia.org/wiki/Deterministic_finite_automaton) with four states ``\{s,q,p,r\}``, three inputs ``\{a,b,c\}`` and the transition function ``δ`` represented in a table:
+Take a [deterministic finite automaton](https://en.wikipedia.org/wiki/Deterministic_finite_automaton) with four states ``\{s,q,p,r\}``, three inputs ``\{a,b,c\}`` and the transition function ``δ`` represented in a table:
 
 | ``\;``          |  ``\;``  |  a  |  b  |  c  |
 |----------------:|---------:|:---:|:---:|:---:|
@@ -31,7 +31,7 @@ p(x) = nothing
 r(x) = nothing
 ```
 
-We dispatch on the input values and use default transitions. We start an actor and use a small `check` function to parse input strings:
+We dispatch on input values and use default transitions. We start an actor and use a small `check` function to parse input strings:
 
 ```julia
 mydfa = Actor(s)
@@ -95,16 +95,17 @@ using YAActL, .Iterators
 δ(qs::Tuple, c::Char) = [δ(q,c) for q in qs]|>flatten|>Set|>Tuple
 ```
 
-In order to show how an actor works in state dispatch mode,
-here we implement one simple iteration to parse an input string and an actor method:
+In order to show how an actor works in `state` dispatch mode,
+here we implement one simple iteration function to parse an input string and an actor method:
 
 ```julia
+# do a simple iteration with a local state variable
 function check(str::String)
-    qs = s
+    qs = s             # set the initial state 's'
     for c in str
-        qs = δ(qs, c)
+        qs = δ(qs, c)  # update state
     end
-    intersect(qs,(u,v)) |> !isempty
+    intersect(qs, (u,v)) |> !isempty
 end
 
 # this works with the actor in state dispatch
@@ -115,13 +116,14 @@ function check(lk::Link, str::String)
 end
 ```
 
-Both implementations follow exactly the same logic. But in the second case the actor maintains state. This enables asynchronous operation.
+Both implementations follow exactly the same logic. But in the second case the actor maintains state. This enables asynchronous operation: We could send single characters anytime and then sometime query the state.
 
 We setup an actor, set it to state dispatch mode and check strings:
 
 ```julia
-mynfa = Actor(δ)
-set!(mynfa, state)
+mynfa = Actor(δ)    # we create an actor with a δ behavior
+set!(mynfa, state)  # and set it to state dispatch
+...
 
 julia> check(mynfa, "aabc")
 true
@@ -132,7 +134,7 @@ false
 
 ## Fibonacci Server
 
-Servers often store data and provide it with some additional computation. One classic example of that is a Fibonacci server.
+Servers often store data and provide it to clients with some additional computation. One classic example of that is a Fibonacci server.
 
 It stores calculated fibonacci numbers in a `Dict` in order to be able to serve future calls faster.
 
@@ -148,7 +150,7 @@ function fib(D::Dict{Int,BigInt}, n::Int)
 end
 ```
 
-Since `D` is a mutable variable and `fib` returns the result, we use the actor's full dispatch mode. We start it with a new empty `Dict` and can `call!` it with the desired number `n`.
+Since `D` is a mutable variable and `fib` returns the result, we use the actor's `full` dispatch mode. We start it with a new empty `Dict` and can `call!` it with the desired number `n`. The actor updates `D` as necessary:
 
 ```julia
 myfib = Actor(fib, Dict{Int,BigInt}())
@@ -157,7 +159,7 @@ julia> call!(myfib, 1000)
 43466557686937456435688527675040625802564660517371780402481729089536555417949051890403879840079255169295922593080322634775209689623239873322471161642996440906533187938298969649928516003704476137795166849228875
 ```
 
-The dictionary is private to the actor.
+The dictionary `D` is private to the actor.
 
 ## Generic Server
 

@@ -54,7 +54,7 @@ Return [`LinkParams`](@ref) with `spawn=true`.
 
 # Example
 
-```jldoctest
+```julia
 julia> using YAActL, .Threads
 
 julia> myactor = Actor(parallel(), threadid);
@@ -70,4 +70,3 @@ const USR = RemoteChannel(()->newLink())
 
 # Get a local link to yourself from inside an actor.
 _self() = current_task().code.chnl :: Link
-    

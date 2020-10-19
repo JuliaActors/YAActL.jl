@@ -8,7 +8,7 @@ An actor's behavior is a ...
 
 > ... function to express what an actor does when it processes a message. [^1]
 
-In the following example we define two behaviors `forward!` and `stack_node`. There are two methods for `stack_node`, dispatching on `Push` and `Pop`.
+[As an example](examples/stack.md) we define two behaviors `forward!` and `stack_node`, the latter with two methods, dispatched on the user implemented messages `Push` and `Pop`.
 
 ```julia
 forward!(lk::L, msg::M) where {L<:Link, M<:Message} = send!(lk, msg)
@@ -24,45 +24,58 @@ function stack_node(sn::StackNode, msg::Push)
 end
 ```
 
-For controlling actor behavior `YAActL` uses Julia's multiple dispatch [^2].
+Like any Julia function a behavior function can be implemented with different methods. The methods are dispatched ...
+
+> based on the number of arguments given, and on the types of all of the function's arguments [^2].
 
 ## [Behavior Dispatch](@id dispatch)
 
-A behavior function can be implemented with different methods. Then the methods are dispatched ...
+In the above example `stack_node` has two arguments: `sn` and `msg`. The first represents state, the second represents an event. An event happens when a message arrives. The actor already has the state argument and gets the event argument with the message.
 
-> based on the number of arguments given, and on the types of all of the function's arguments [^3].
+1. With its creation as `Actor(stack_node, sn)` the actor gets the first argument `sn`.
+2. With a message `msg` it gets the second argument and calls `stack_node(sn, msg)`.
+3. Depending on whether the incoming message is a `Pop` or a `Push` one of the two implemented methods is dispatched.
 
-`YAActL` actors pass the incoming message as last argument to the behavior function.   
+`YAActL` allows to send arguments to actors:
 
-1. Our behavior function call is `stack_node(sn, msg)`.
-2. After its creation as `Actor(stack_node, sn)` the actor has only the first argument `sn` to the behavior.
-3. With a message `msg` it gets the second argument and calls the behavior as `stack_node(sn, msg)`.
-4. Depending on whether the incoming message is a `Pop` or a `Push` one of the two implemented methods is dispatched.
+- With [`cast!`](@ref) or [`call!`](@ref) you can send them any arguments.
+- Or you can [`send!`](@ref) them a [`Request`](@ref) or a user implemented message.
 
-If the actor tries to pass another message to `stacknode`, it will fail with an `ArgumentError` since only two methods are implemented.
-
-You can implement an ``\epsilon`` default method – if you mind – returning `nothing` on every other [`Message`](@ref). Then the actor will do nothing with an unknown message and not fail.
+Then an actor combines its first arguments with the received second arguments and executes the behavior function.
 
 ## [Argument Composition](@id composition)
 
-`YAActL` actors have two modes to compose the arguments to the behavior function and to use its returned value:
+You can [`set!`](@ref) `YAActL` actors into
 
-```@docs
-Dispatch
+- `full` dispatch or
+- `state` dispatch.
+
+The [`Dispatch`](@ref) mode determines how actors compose arguments and whether they use the returned value of the behavior function to update their internal state.
+
+```@repl
+using YAActL # hide
+mult2 = Actor(*, 2);  # create a new actor to multiply with 2 in full dispatch
+[call!(mult2, i) for i in 1:10]
+set!(mult2, state);   # set it to state dispatch
+update!(mult2, 2);    # set its state to 2
+[call!(mult2, i) for i in 1:10]
+query!(mult2)         # query its state
+set!(mult2, full);    # back to full dispatch
+call!(mult2, 10)      # again it multiplies with 2
 ```
 
-You can set the dispatch mode with [`set!`](@ref).
+The two dispatch modes cause quite different behaviors.
 
 ## Full Dispatch
 
-Above we used `full` dispatch. With `Actor(stack_node, sn)` the actor got `sn` as the first argument and can use that to represent state. If `sn` is mutable, a behavior function can even change its content. When a message `msg` arrives, the actor takes it as the second argument and composes them to execute the behavior.
+With `Actor(stack_node, sn)` we used `full` dispatch. The actor got `sn` as the first argument and can use that to represent state. If it is mutable, the behavior function can change its content. When a message `msg` arrives, the actor takes it as the second argument and composes them to execute the behavior.
 
-The `YAActL` [API](api.md) allows arbitrary arguments to a behavior function. To install a predefined behavior function `bhv` and to deliver the *first part* of its arguments `args1...` we have
+To install a behavior function `bhv` and its first arguments `args1...` we have
 
 - [`act = Actor(bhv, args1...)`](@ref Actor) or
 - [`become!(act, bhv, args1...)`](@ref become!).
 
-The second part `args2...` gets delivered with
+The second arguments `args2...` get delivered with
 
 - [`call!(act, args2...)`](@ref call!) or
 - [`cast!(act, args2...)`](@ref cast!) or
@@ -71,25 +84,25 @@ The second part `args2...` gets delivered with
 The actor then calls
 
 - `bhv((args1..., args2...)...)` or
-- `bhv((args1..., msg)...)` respectively. 
+- `bhv((args1..., msg)...)` respectively.
 
-Empty arguments `args1...` or `args2...` are allowed as long as their composition can be used to dispatch the behavior function `bhv`.
+Empty arguments for `args1...` or `args2...` are allowed as long as their composition can be used to dispatch the behavior function `bhv`.
 
 ## State Dispatch
 
-In `state` dispatch an actor uses its internal state [`sta`](@ref _ACT) as first argument to the behavior function. On a message `msg` it calls the behavior as `bhv(sta, msg)` and saves the returned value in its internal state variable `sta`. Thus it operates as a [finite-state machine](https://en.wikipedia.org/wiki/Finite-state_machine). This is a more functional approach.
+In `state` dispatch an actor uses its internal state [`sta`](@ref _ACT) as first argument to the behavior function. On a message `msg` it calls the behavior as `bhv(sta, msg)` and saves the returned value back to its internal state variable `sta`. Thus it operates as a [finite-state machine](https://en.wikipedia.org/wiki/Finite-state_machine).
 
-A behavior `bhv` is installed without arguments[^4] as
+A behavior `bhv` is installed without arguments[^3] as
 
 - [`act = Actor(bhv)`](@ref Actor) or
 - [`become!(act, bhv)`](@ref become!).
 
-Actor state [`sta`](@ref _ACT) can be set with
+Actor state [`sta`](@ref _ACT) can be set 
 
-- [`init!(act, args1...)`](@ref init!) and
-- [`update!(act, args1...)`](@ref update!).
+- with [`update!(act, args1...)`](@ref update!) or
+- by an [`init`](@ref _ACT) function installed with [`init!`](@ref).
 
-The second part `args2...` gets delivered with
+The second arguments `args2...` get delivered with
 
 - [`call!(act, args2...)`](@ref call!) or
 - [`cast!(act, args2...)`](@ref cast!) or
@@ -121,12 +134,11 @@ The described mechanisms allow a fine-grained control of an actor's behavior:
         - either with the behavior function in `full` dispatch,
         - or by setting the actor state in `state` dispatch,
     - the *second arguments* delivered with the incoming message.
-3. Control the *outcome* of the dispatched function or method by setting the *values* of arguments and keyword arguments[^5].
+3. Control the *outcome* of the dispatched function or method by setting the *values* of arguments and keyword arguments[^4].
 
 This allows actors to use Julia's full expressiveness with functions and methods.
 
 [^1]: see the [Actor Model](https://en.wikipedia.org/wiki/Actor_model#Behaviors) on Wikipedia.
-[^2]: see also [JuliaCon 2019 | The Unreasonable Effectiveness of Multiple Dispatch | Stefan Karpinski](https://www.youtube.com/watch?v=kc9HwsxE1OY).
-[^3]: from [Methods](https://docs.julialang.org/en/v1/manual/methods/) in the Julia manual.
-[^4]: arguments `arg1...` to the behavior function are simply ignored in `state` dispatch.
-[^5]: you can also dispatch on values by using [`Val`](https://docs.julialang.org/en/v1/base/base/#Base.Val)
+[^2]: from [Methods](https://docs.julialang.org/en/v1/manual/methods/) in the Julia manual.
+[^3]: arguments `arg1...` to the behavior function are simply ignored in `state` dispatch.
+[^4]: you can also dispatch on values by using [`Val`](https://docs.julialang.org/en/v1/base/base/#Base.Val)

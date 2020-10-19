@@ -137,6 +137,23 @@ The following functions do this for specific duties:
 
 If you don't provide those functions with a return link, they will block and return the result. Note that you should not use blocking when you need to be strictly responsive.
 
+## Using the API
+
+The [API](api.md) functions allow to work with actors without using messages explicitly:
+
+```@repl
+using YAActL, .Threads # hide
+act4 = Actor(parallel(), +, 4) # start an actor adding to 4
+exec!(act4, Func(threadid))    # ask it its threadid
+cast!(act4, 4)                 # cast it 4
+query!(act4, :res)             # query the result
+become!(act4, *, 4);           # switch the behavior to *
+call!(act4, 4)                 # call it with 4
+exec!(act4, Func(broadcast, cos, pi .* (-2:2))) # tell it to exec any function
+exit!(act4)                    # stop it
+act4.state
+```
+
 ## Actor State
 
 An actor stores the behavior function and arguments to it, results of computations and more. Thus it has [state](@ref state) and this influences how it behaves.

@@ -26,12 +26,12 @@ resp = newLink()
 
 for i ∈ 0:5:50      # send and receive loop
     send!(F, Request(big(i), resp))
-    println(take!(resp))
+    println(receive!(resp).y)
 end
 
 for i ∈ 0:5:50      # send all requests in one loop
     send!(F, Request(big(i), resp))
 end
 for i ∈ 0:10      # receive all results
-    println(take!(resp))
+    println(receive!(resp).y)
 end

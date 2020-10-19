@@ -35,31 +35,30 @@ function stack_node(sn::StackNode, msg::Push)
 end
 # ----------------------------------------------------------------------
 
-function stack_node(sn::StackNode, msg::Print)  # for debugging
-    print(@sprintf("content: %s\n", sn.content))
-    isnothing(sn.content) || send!(sn.link, msg)
-end
+# function stack_node(sn::StackNode, msg::Print)  # for debugging
+#     print(@sprintf("content: %s\n", sn.content))
+#     isnothing(sn.content) || send!(sn.link, msg)
+# end
 
-# mystack = Actor(lk, stack_node, StackNode(nothing, Link()))
 mystack = Actor(stack_node, StackNode(nothing, Link()))
 
 response = newLink()
 
 send!(mystack, Pop(response))  # new stack
-take!(response)                # returns nothing
+receive!(response).y           # returns nothing
 send!(mystack, Push(1))        # push 1 on the stack
 send!(mystack, Pop(response))  # pop it
-take!(response)                # returns 1, 1st node now forwards messages
-send!(mystack, Pop(response))  # pop again
-take!(response)                # now returns nothing
+receive!(response).y           # returns 1, 1st node now forwards messages
+send!(mystack, Pop(response)); # pop again
+receive!(response).y           # now returns nothing
 
 for i ∈ 1:5
     send!(mystack, Push(i))
 end
 
-(send!(mystack, Print()); sleep(1))
+# (send!(mystack, Print()); sleep(0.1))
 
 for i ∈ 1:5
     send!(mystack, Pop(response))
-    println(take!(response))
+    println(receive!(response).y)
 end

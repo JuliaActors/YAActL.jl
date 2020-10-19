@@ -127,14 +127,14 @@ In both modes an actor passes keyword arguments `kwargs...` to the behavior func
 
 The described mechanisms allow a fine-grained control of an actor's behavior:
 
-1. Set an actor's *behavior function* at startup or by `become!`.
-2. Control the *dynamic dispatch* of implemented behavior methods with
-    - the actor's *dispatch mode*,
-    - the *first arguments* delivered 
-        - either with the behavior function in `full` dispatch,
-        - or by setting the actor state in `state` dispatch,
-    - the *second arguments* delivered with the incoming message.
-3. Control the *outcome* of the dispatched function or method by setting the *values* of arguments and keyword arguments[^4].
+1. Set an actor's behavior function at startup or with `become!`.
+2. Control the dynamic dispatch of implemented behavior methods with
+    - the actor's dispatch mode,
+    - the first arguments  
+        - either of the behavior function in `full` dispatch,
+        - or the actor state `sta` in `state` dispatch,
+    - the second arguments from the incoming message.
+3. Control the result of the dispatched function or method by setting the values of arguments and keyword arguments[^4].
 
 This allows actors to use Julia's full expressiveness with functions and methods.
 

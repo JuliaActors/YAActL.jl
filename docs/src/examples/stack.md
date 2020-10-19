@@ -50,16 +50,17 @@ julia> response = newLink()           # create a response link
 Channel{Message}(sz_max:32,sz_curr:0)
 
 julia> send!(mystack, Push(1))        # push 1 on the stack
+Push{Int64}(1)
 
 julia> send!(mystack, Pop(response))  # pop it
+Pop(Channel{Message}(sz_max:32,sz_curr:1))
 
-julia> take!(response)                # returns 1, 1st node now forwards messages
-Response{Int64}(1)
+julia> receive!(response).y           # returns 1, 1st node now forwards messages
+1
 
-julia> send!(mystack, Pop(response))  # pop again
+julia> send!(mystack, Pop(response)); # pop again
 
-julia> take!(response)                # now nothing is left
-Response{Nothing}(nothing)
+julia> receive!(response)             # now nothing is left
 
 julia> for i ∈ 1:5
            send!(mystack, Push(i))
@@ -67,11 +68,11 @@ julia> for i ∈ 1:5
 
 julia> for i ∈ 1:5
            send!(mystack, Pop(response))
-           println(take!(response))
+           println(receive!(response).y)
        end
-Response{Int64}(5)
-Response{Int64}(4)
-Response{Int64}(3)
-Response{Int64}(2)
-Response{Int64}(1)
+5
+4
+3
+2
+1
 ```

@@ -48,7 +48,7 @@ LinkParams
 parallel
 ```
 
-We send messages to actors and they can send them to others over links.
+Actors can [`send!`](@ref) and [`receive!`](@ref) messages over links.
 
 ## Messages
 
@@ -61,7 +61,7 @@ Request
 Timeout
 ```
 
-Actors operate with [internal messages](messages.md). Further messages can be implemented by a user. If an actor receives a message other than an internal one, it passes the message as last argument to the behavior function.
+Actors operate with [internal messages](messages.md). Further messages can be implemented by a user. If an actor receives a `Request` or a user implemented message, it passes it as last argument to the behavior function.
 
 ## Send and Receive
 
@@ -72,12 +72,32 @@ send!
 receive!
 ```
 
+```julia
+julia> myactor = Actor(parallel(), threadid);
+
+julia> send!(myactor, YAActL.Call(USR)); # the same as call!(myactor, USR)
+
+julia> receive!(USR).y                   # receive the result
+2
+
+julia> receive!(USR)                     # gives after some seconds ...
+Timeout()
+```
+
 ## Dispatch mode
 
 Actors have a dispatch mode:
 
 ```@docs
 Dispatch
+```
+
+```julia
+julia> set!(myactor, state)              # set state dispatch
+YAActL.Update{Dispatch}(:dsp, state)
+
+julia> set!(myactor, full)               # set full dispatch
+YAActL.Update{Dispatch}(:dsp, full)
 ```
 
 ## Actor Control
@@ -112,7 +132,7 @@ request!
 
 The following functions support both messaging styles:
 
-1. Send a message with an explicit `from`-link to an actor and it will respond to it. Then you can asynchronously [`receive!`](@ref) the response.
+1. Send a message with an explicit `from`-link to an actor and it will respond to this link. Then you can  asynchronously [`receive!`](@ref) the response from it.
 2. Send a message with an implicit link to an actor, block, wait for the response and return it.
 
 ```@docs

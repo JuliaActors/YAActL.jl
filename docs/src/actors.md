@@ -10,35 +10,60 @@ CurrentModule = YAActL
 > - create a finite number of new actors;
 > - designate the behavior to be used for the next message it receives. [^1]
 
-`YAActL` actors are Julia tasks represented by local or remote [`LINK`](@ref)s, channels over which they receive and send [messages](messages.md) [^2]. They:
+`YAActL` actors are Julia tasks running on a computer or in a network, represented by local or remote [`LINK`](@ref)s, channels over which they receive and send [messages](messages.md) [^2]. They:
 
 - *react* to those messages,
 - *execute* user defined [behavior functions](behavior.md) when receiving certain messages,
 - *change* their behavior upon request,
-- *update* their [internal state](@ref state) influencing how they behave.
+- *update* their [internal state](@ref state) which influences how they behave.
 
 The following provides an overview of `YAActL` actors:
 
 ## Start
 
-In the simplest case we use [`Actor`](@ref) to start an actor with a previously implemented [behavior](behavior.md). The following [code](@ref stack_example) starts an actor with a `stack_node` behavior function and some arguments to it.
+In the simplest case with [`Actor`](@ref) we start an actor with a [behavior](behavior.md) function. The following actor when called sends its `threadid`:
 
 ```julia
-mystack = Actor(stack_node, StackNode(nothing, Link()))
+julia> using YAActL, .Threads
+
+julia> act1 = Actor(threadid)               # start an actor who gives its threadid
+Channel{Message}(sz_max:32,sz_curr:0)
+
+julia> call!(act1)                          # call it
+1
+
+julia> act2 = Actor(parallel(), threadid)   # start a parallel actor
+
+julia> call!(act2)                          # and call it
+2
+
+julia> using Distributed
+
+julia> addprocs(1);
+
+julia> @everywhere using YAActL
+
+julia> act3 = Actor(2, println)             # start a remote actor on pid 2 with a println behavior
+RemoteChannel{Channel{Message}}(2, 1, 11)
+
+julia> call!(act3, "Tell me where you are!") # and call it with an argument
+      From worker 2:    Tell me where you are!
 ```
 
 ## Links
 
-When we started our actor, we got a [link](@ref links) variable `mystack` to it. This is a local or remote channel from which actors can receive messages. We can also send messages to it.
+When we started our first actor, we got a [link](@ref links) variable `act1` to it. This is a local channel over which actors can receive and send messages. Our third actor returned a `RemoteChannel`. Actors are only represented by their links.
 
 ## Messages
 
-`YAActL` actors operate on [predefined messages](messages.md), all of type [`Message`](@ref). They process messages asynchronously. Basically there are only two functions to interact with an actor:
+`YAActL` actors communicate and act asynchronously on messages. Basically they use only two functions to interact:
 
 - [`send!`](@ref): send a message to an actor,
 - [`receive!`](@ref): receive a message from an actor.
 
-A user can implement further message types. For example:
+They operate on [internal messages](messages.md), all of type [`Message`](@ref), used by the [API](api.md) functions described below.
+
+A user can also implement his own message types and dispatch the actor behavior based on them. For [example](examples/stack.md) a user may implement:
 
 ```julia
 struct Pop <: Message
@@ -50,11 +75,32 @@ struct Push{T} <: Message
 end
 ```
 
-Those are forwarded by the actor as last arguments to its behavior function.
+Then he can write a function [dispatching](@ref dispatch) on them, start an actor with this behavior and send it `Pop` or `Push` messages.
 
 ## Behavior
 
-Actors execute a behavior function when they receive a `Request` or another user implemented message [^3]. They pass those messages as the last argument to their behavior function. Argument composition is explained in [Behaviors](behavior.md). The actor stores the return value in its internal [`res`](@ref _ACT) variable. This can be queried from the actor with [`query!(lk, :res)`](@ref query!).
+When actors receive
+
+- arguments from [`cast!`](@ref) or [`call!`](@ref) or
+- a [`Request`](@ref) or a user implemented message
+
+they [compose](@ref composition) their owned arguments with the received ones and [dispatch](@ref dispatch) their [behavior](behavior.md) function. Then they store the return value in their internal [`res`](@ref _ACT) variable. 
+
+Following further [our example](examples/stack.md):
+
+```julia
+julia> mystack = Actor(stack_node, StackNode(nothing, Link())); # start an actor with a first argument
+
+```
+
+`mystack` represents an actor with a `stack_node` behavior and first argument `StackNode(nothing, Link())`. When it eventually receives a message ...
+
+```julia
+julia> send!(mystack, Push(1))        # push 1 on the stack
+
+```
+
+..., it executes `stack_node(StackNode(nothing, Link()), Push(1))`.
 
 ## Actor Control
 
@@ -65,12 +111,12 @@ Actors can be controlled with the following functions:
 - [`exit!`](@ref): cause an actor to terminate,
 - [`init!`](@ref): tell an actor to execute a function at startup,
 - [`set!`](@ref): set an actor's dispatch mode,
-- [`term!`](@ref): tell an actor to execute a function when it terminates.
-- [`update!`](@ref): update an actor's internal state,
+- [`term!`](@ref): tell an actor to execute a function when it terminates,
+- [`update!`](@ref): update an actor's internal state.
 
-Those functions are wrappers to [predefined messages](messages.md) and to `send!`.
+Those functions are wrappers to [internal messages](messages.md) and to [`send!`](@ref).
 
-Actors can also operate on themselves or rather they send messages to themselves:
+Actors can also operate on themselves, or rather they send messages to themselves:
 
 - [`become`](@ref): and actor switches its own behavior,
 - [`self`](@ref): an actor gets a link to itself,
@@ -80,23 +126,22 @@ Actors can also operate on themselves or rather they send messages to themselves
 
 What if you want to receive a reply from an actor? Then there are two possibilities:
 
-1. [`send!`](@ref) a message to an actor and then [`receive!`] the `Response` asynchronously,
-2. [`request!`](@ref): send a message to an actor, **block** and receive the result synchronously.
+1. [`send!`](@ref) a message to an actor and then [`receive!`](@ref) the [`Response`](@ref) asynchronously,
+2. [`request!`](@ref): send a message to an actor, **block** and [`receive!`](@ref) the result synchronously.
 
 The following functions do this for specific duties:
 
-- [`call!`](@ref) an actor to execute its behavior function and to return the result,
-- [`exec!`](@ref): execute an arbitrary function,
-- [`query!`](@ref) an actor's internal state variable.
+- [`call!`](@ref) an actor to execute its behavior function and to send the result,
+- [`exec!`](@ref): tell an actor to execute a function and to send the result,
+- [`query!`](@ref) tell an actor's to send one of its internal state variables.
 
-Note that you should not use blocking when you need to be strictly responsive.
+If you don't provide those functions with a return link, they will block and return the result. Note that you should not use blocking when you need to be strictly responsive.
 
 ## Actor State
 
-An actor stores a behavior function and arguments to it, results of computations and more. Thus it has [state](@ref state) and its state influences how it behaves.
+An actor stores the behavior function and arguments to it, results of computations and more. Thus it has [state](@ref state) and this influences how it behaves.
 
-But it does **not share** state with its environment (only for [diagnostic](diagnosis.md) purposes). The [API](api.md) functions above are a safe way to access actor state.
+But it does **not share** its state variables with its environment (only for [diagnostic](diagnosis.md) purposes). The [API](api.md) functions above are a safe way to access actor state via messaging.
 
 [^1]: See: The [Actor Model](https://en.wikipedia.org/wiki/Actor_model) on Wikipedia.
-[^2]: They build on Julia's concurrency primitives  `@spawn`, `put!` and `take!` (to/from `Channel`s).
-[^3]: Actors also execute behavior when they get the [internal messages](messages.md) `Call` or `Cast`.
+[^2]: They build on Julia's concurrency primitives  `@spawn`, `put!` and `take!` on `Channel`s.

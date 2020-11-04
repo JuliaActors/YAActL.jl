@@ -54,14 +54,14 @@ The [`Dispatch`](@ref) mode determines how actors compose arguments and whether 
 
 ```@repl
 using YAActL # hide
-mult2 = Actor(*, 2);  # create a new actor to multiply with 2 in full dispatch
+mult2 = Actor(*, 2);  # create a new actor to multiply by 2 in full dispatch
 [call!(mult2, i) for i in 1:10]
 set!(mult2, state);   # set it to state dispatch
 update!(mult2, 2);    # set its state to 2
 [call!(mult2, i) for i in 1:10]
 query!(mult2)         # query its state
 set!(mult2, full);    # back to full dispatch
-call!(mult2, 10)      # again it multiplies with 2
+call!(mult2, 10)      # again it multiplies by 2
 ```
 
 The two dispatch modes cause quite different behaviors.

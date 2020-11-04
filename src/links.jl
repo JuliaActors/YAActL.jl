@@ -7,23 +7,6 @@
 #
 
 """
-    newLink(sz::Integer=32)
-
-Create a link of buffer size `sz` to get responses from actors.
-Buffer sizes `sz < 10` are not allowed.
-
-# Example
-```julia
-julia> response = newLink()
-Channel{Message}(sz_max:32,sz_curr:0)
-```
-"""
-function newLink(sz::Integer=32)
-    @assert sz ≥ 10 "Link buffer size < 10 not allowed"
-    Link(sz)
-end
-
-"""
     LinkParams(pid=myid(), size=32; taskref=nothing, spawn=false)
 
 Parameters for setting up an [`Actor`](@ref). 
@@ -65,8 +48,54 @@ julia> call!(myactor)
 """
 parallel(size=32; taskref=nothing) = LinkParams(myid(), size, taskref=taskref, spawn=true)
 
-"User remote channel for interacting with actors."
-const USR = RemoteChannel(()->newLink())
+"""
+    Link(size=32)
 
-# Get a local link to yourself from inside an actor.
-_self() = current_task().code.chnl :: Link
+Create a local Link with a buffered `Channel` `size ≥ 1`.
+"""
+Link(size=32) = Link(Channel{Message}(max(1, size)), myid(), :local)
+
+# create a local Link
+function _link(  func::Function, type::Symbol=:local; 
+                size=32, taskref=nothing, spawn=false)
+    Link(
+        Channel{Message}(func, size, taskref=taskref, spawn=spawn),
+        myid(),
+        type
+        )
+end
+
+# create a remote Link
+function _link(  pid::Int, func::Function;
+    size=32, taskref=nothing, spawn=false)
+    Link(
+        RemoteChannel(()->Channel{Message}(func, size, taskref=taskref, spawn=spawn), pid),
+        pid,
+        :remote
+    )
+end
+
+# make a remote link from a local one
+_rlink(lk::Link) = lk.chn isa Channel ?
+        Link(RemoteChannel(()->lk.chn),myid(),:remote) : lk
+_rlink(x) = x
+
+"User remote channel for interacting with actors."
+USR = nothing
+
+# Get the local channel to yourself from inside an actor.
+_self() = current_task().code.chnl
+
+"""
+```
+islocal(lk::Link)
+islocal(name::Symbol)
+```
+Returns `true` if the actor `lk` or `name` has the same
+pid as the caller, else false.
+"""
+islocal(lk::Link) = lk.pid == myid()
+function islocal(name::Symbol)
+    lk = whereis(name)
+    return !ismissing(lk) ? islocal(lk) : lk
+end

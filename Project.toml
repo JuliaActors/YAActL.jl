@@ -1,7 +1,7 @@
 name = "YAActL"
 uuid = "4c422213-1242-4325-9ff2-ab065d5354a7"
 authors = ["Paul Bayer"]
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
 Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"

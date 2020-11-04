@@ -1,9 +1,10 @@
-# References
+# Useful References
 
 ## Web
 
 - The [Actor model](https://en.wikipedia.org/wiki/Actor_model) on Wikipedia
 - Hewitt, Meijer and Szyperski: The Actor Model (everything you wanted to know...) [on YouTube](https://www.youtube.com/watch?v=7erJ1DV_Tlo)
+- Joe Armstrong: [Making reliable distributed systems in the presence of software errors](http://erlang.org/download/armstrong_thesis_2003.pdf).- 2003, Dissertation
 - Robert Virding in [this thread](https://elixirforum.com/t/what-does-the-actor-belong-to/34590) on the elixir forum suggests that there are two complementary roads to actors, a theoretical and a pragmatic one.
 
 ## Books

@@ -10,7 +10,7 @@ CurrentModule = YAActL
 > - create a finite number of new actors;
 > - designate the behavior to be used for the next message it receives. [^1]
 
-`YAActL` actors are Julia tasks running on a computer or in a network, represented by local or remote [`LINK`](@ref)s, channels over which they receive and send [messages](messages.md) [^2]. They:
+`YAActL` actors are Julia tasks running on a computer or in a network, represented by local or remote [`Link`](@ref)s, channels over which they receive and send [messages](messages.md) [^2]. They:
 
 - *react* to those messages,
 - *execute* user defined [behavior functions](behavior.md) when receiving certain messages,
@@ -27,12 +27,13 @@ In the simplest case with [`Actor`](@ref) we start an actor with a [behavior](be
 julia> using YAActL, .Threads
 
 julia> act1 = Actor(threadid)               # start an actor who gives its threadid
-Channel{Message}(sz_max:32,sz_curr:0)
+Link{Channel{Message}}(Channel{Message}(sz_max:32,sz_curr:0), 1, :local)
 
 julia> call!(act1)                          # call it
 1
 
 julia> act2 = Actor(parallel(), threadid)   # start a parallel actor
+Link{Channel{Message}}(Channel{Message}(sz_max:32,sz_curr:0), 1, :local)
 
 julia> call!(act2)                          # and call it
 2
@@ -43,8 +44,8 @@ julia> addprocs(1);
 
 julia> @everywhere using YAActL
 
-julia> act3 = Actor(2, println)             # start a remote actor on pid 2 with a println behavior
-RemoteChannel{Channel{Message}}(2, 1, 11)
+julia>  act3 = Actor(2, println)            # start a remote actor on pid 2 with a println behavior
+Link{RemoteChannel{Channel{Message}}}(RemoteChannel{Channel{Message}}(2, 1, 11), 2, :remote)
 
 julia> call!(act3, "Tell me where you are!") # and call it with an argument
       From worker 2:    Tell me where you are!
@@ -52,7 +53,7 @@ julia> call!(act3, "Tell me where you are!") # and call it with an argument
 
 ## Links
 
-When we started our first actor, we got a [link](@ref links) variable `act1` to it. This is a local channel over which actors can receive and send messages. Our third actor returned a `RemoteChannel`. Actors are only represented by their links.
+When we started our first actor, we got a [link](@ref links) variable `act1` to it. This represents a local channel over which actors can receive and send messages. Our third actor got a `RemoteChannel`. Actors are only represented by their links.
 
 ## Messages
 
@@ -118,7 +119,7 @@ Those functions are wrappers to [internal messages](messages.md) and to [`send!`
 
 Actors can also operate on themselves, or rather they send messages to themselves:
 
-- [`become`](@ref): and actor switches its own behavior,
+- [`become`](@ref): an actor switches its own behavior,
 - [`self`](@ref): an actor gets a link to itself,
 - [`stop`](@ref): an actor stops.
 
@@ -154,11 +155,21 @@ exit!(act4)                    # stop it
 act4.state
 ```
 
+## Actor Registry
+
+If a parent actor or worker process creates actors, its link is only locally known. It has to be sent to all other actors that want to communicate with it.
+
+Alternatively an actor link can be registered under a name (a `Symbol`). Then any actor in the system can communicate with it by using its name.
+
 ## Actor State
 
 An actor stores the behavior function and arguments to it, results of computations and more. Thus it has [state](@ref state) and this influences how it behaves.
 
 But it does **not share** its state variables with its environment (only for [diagnostic](diagnosis.md) purposes). The [API](api.md) functions above are a safe way to access actor state via messaging.
+
+## Actor Local Dictionary
+
+Since actors are Julia tasks, they have a local dictionary in which you can store values. You can use [`task_local_storage`](https://docs.julialang.org/en/v1/base/parallel/#Base.task_local_storage-Tuple{Any}) to access it in behavior functions. But normally the state variable [`sta`](@ref _ACT) and argument passing should be enough to handle values in actors.
 
 [^1]: See: The [Actor Model](https://en.wikipedia.org/wiki/Actor_model) on Wikipedia.
 [^2]: They build on Julia's concurrency primitives  `@spawn`, `put!` and `take!` on `Channel`s.

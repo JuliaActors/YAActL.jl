@@ -43,7 +43,7 @@ struct Become <: Message
 end
 
 """
-    Call(arg, from::LINK)
+    Call(arg, from::Link)
 
 A synchronous [`Message`](@ref) to an actor to execute its 
 behavior with `arg...` and to send the result as a [`Response`](@ref) 
@@ -52,11 +52,11 @@ message to `from`.
 If the actor is set to `state` dispatch, it updates its internal 
 state with the result. 
 """
-struct Call{T, L} <: Message
+struct Call{T} <: Message
     x::T
-    from::L
+    from::Link
 end
-Call(from) = Call{Tuple{},typeof(from)}((),from)
+Call(from) = Call{Tuple{}}((),from)
 
 """
     Cast(arg)
@@ -73,24 +73,24 @@ end
 Cast() = Cast{Tuple{}}(())
 
 """
-    Diag(from::LINK)
+    Diag(from::Link)
 
 A synchronous [`Message`](@ref) to an actor to send a 
 `Response` message with its internal `_ACT` variable to `from`.
 """
-struct Diag{L} <: Message 
-    from::L
+struct Diag <: Message 
+    from::Link
 end
 
 """
-    Exec(func::Func, from::LINK)
+    Exec(func::Func, from::Link)
 
 A synchronous [`Message`](@ref) to an actor to execute `func`
 and to send a `Response` message with the return value to `from`.
 """
-struct Exec{F,L} <: Message
+struct Exec{F} <: Message
     func::F
-    from::L
+    from::Link
 end
 
 """
@@ -105,7 +105,7 @@ struct Init <: Message
 end
 
 """
-    Query(s::Symbol, from::LINK)
+    Query(s::Symbol, from::Link)
 
 A [`Message`](@ref) to an actor to send a 
 `Response` message with one of its internal state 
@@ -113,37 +113,35 @@ variables `s` to `from`.
 
 - `s::Symbol` can be one of `:sta`, `:res`, `:bhv`, `:dsp`.
 """
-struct Query{L} <: Message
+struct Query <: Message
     x::Symbol
-    from::L
+    from::Link
 end
 
 """
-    Request(x, from::LINK)
+    Request(x, from::Link)
 
 A generic [`Message`](@ref) for user requests.
 """
-struct Request{T,L} <: Message
+struct Request{T} <: Message
     x::T
-    from::L
+    from::Link
 end
 
 """
-    Response(y, from::LINK=self())
+    Response(y, from::Link=self())
 
 A [`Message`](@ref) representing a response to requests.
 
 # Fields
 - `y`: response content,
-- `from::LINK`: sender link.
+- `from::Link`: sender link.
 """
-struct Response{T,L} <: Message
+struct Response{T} <: Message
     y::T
-    from::L
-
-    Response(y, from::LK=self()) where LK<:LINK =
-        new{typeof(y),typeof(from)}(y, from)
+    from::Link
 end
+Response(y) = Response(y, self())
 
 """
     Stop(code=0)

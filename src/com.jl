@@ -4,47 +4,54 @@
 # Paul Bayer, 2020
 #
 
-"""
-    send!(lk::LINK, m::Message)
-
-Send a message `m` to an actor over a [`LINK`](@ref) `lk`.
-"""
-function send!(lk::Link, m::M) where M<:Message
+function _send!(chn::Channel, m::Message)
     # reimplements Base.put_buffered with a modification
-    lock(lk)
+    lock(chn)
     try
-        while length(lk.data) ≥ lk.sz_max  # modification: allow buffer overflow
-            Base.check_channel_state(lk)
-            wait(lk.cond_put)
+        while length(chn.data) ≥ chn.sz_max  # modification: allow buffer overflow
+            Base.check_channel_state(chn)
+            wait(chn.cond_put)
         end
-        push!(lk.data, m)
+        push!(chn.data, m)
         # notify all, since some of the waiters may be on a "fetch" call.
-        notify(lk.cond_take, nothing, true, false)
+        notify(chn.cond_take, nothing, true, false)
     finally
-        unlock(lk)
+        unlock(chn)
     end
     return m
 end
-send!(lk::RLink, m::M) where M<:Message = put!(lk, m)
-
-"""
-```
-send!(lks::Tuple{LINK,Vararg{LINK}}, m::M) where M<:Message
-send!(lks::Vector{LINK}, m::M) where M<:Message
-```
-Send a message `m` to a `Vector` or `Tuple` of [`LINK`](@ref)s.
-"""
-send!(lks::Tuple{LINK,Vararg{LINK}}, m::M) where M<:Message =
-    map(x->send!(x, m), lks)
-send!(lks::Vector{LINK}, m::M) where M<:Message =
-    map(x->send!(x, m), lks)
-
-_match(msg::M, ::Nothing, ::Nothing) where M<:Message = true
-_match(msg::M, Msg::Type{<:Message}, ::Nothing) where M<:Message = msg isa Msg
-function _match(msg::M, ::Nothing, from::LK) where {M<:Message,LK<:LINK} 
-    :from in fieldnames(typeof(msg)) ? msg.from == from : false
+function _send!(rch::RemoteChannel, m::Message)
+    if rch.where != myid()
+        # change any local links in m to remote links
+        m = typeof(m)((_rlink(getfield(m,i)) for i in fieldnames(typeof(m)))...)
+    end
+    put!(rch, m)
 end
-function _match(msg::M, Msg::Type{<:Message}, from::LK) where {M<:Message,LK<:LINK}
+
+"""
+    send!(lk::Link, m::Message)
+
+Send a message `m` to an actor over a [`Link`](@ref) `lk`.
+"""
+send!(lk::L, m::Message) where L<:Link = _send!(lk.chn, m)
+
+# """
+# ```
+# send!(lks::Tuple{Link,Vararg{Link}}, m::M) where M<:Message
+# send!(lks::Vector{Link}, m::M) where M<:Message
+# ```
+# Send a message `m` to a `Vector` or `Tuple` of [`Link`](@ref)s.
+# """
+# send!(lks::Tuple{Link,Vararg{Link}}, m::M) where M<:Message =
+#     map(x->send!(x, m), lks)
+# send!(lks::Vector{Link}, m::M) where M<:Message =
+#     map(x->send!(x, m), lks)
+
+_match(msg::Message, ::Nothing, ::Nothing) = true
+_match(msg::Message, Msg::Type{<:Message}, ::Nothing) = msg isa Msg
+_match(msg::Message, ::Nothing, from::Link) =
+    :from in fieldnames(typeof(msg)) ? msg.from == from : false
+function _match(msg::Message, Msg::Type{<:Message}, from::Link)
     if :from in fieldnames(typeof(msg))
         return msg isa Msg && msg.from == from
     else
@@ -66,9 +73,9 @@ matching message. Other messages in `lk` are restored to it in their
 previous order.
 
 # Parameters
-- `lk::LINK`: local or remote link over which the message is received,
+- `lk::Link`: local or remote link over which the message is received,
 - `Msg::Type{<:Message}`: [`Message`](@ref) type,
-- `from::LINK`: local or remote link of sender. If `from` is
+- `from::Link`: local or remote link of sender. If `from` is
     provided, only messages with a `from` field can be matched.
 - `timeout::Real=5.0`: maximum waiting time in seconds.
     - If `timeout==0`, `lk` is scanned only for existing messages.
@@ -77,11 +84,11 @@ previous order.
 # Returns
 - received message or `Timeout()`.
 """
-receive!(lk::LK; kwargs...) where LK<:LINK = receive!(lk, nothing, nothing; kwargs...)
-receive!(lk::L1, from::L2; kwargs...) where {L1<:LINK,L2<:LINK} = receive!(lk, nothing, from; kwargs...)
-receive!(lk::LK, Msg::Type{<:Message}; kwargs...) where LK<:LINK = receive!(lk, Msg, nothing; kwargs...)
+receive!(lk::L; kwargs...) where L<:Link = receive!(lk, nothing, nothing; kwargs...)
+receive!(lk::L, from::Link; kwargs...) where L<:Link = receive!(lk, nothing, from; kwargs...)
+receive!(lk::L, Msg::Type{<:Message}; kwargs...) where L<:Link = receive!(lk, Msg, nothing; kwargs...)
 function receive!(lk::L1, Msg::M, from::L2; 
-    timeout::Real=5.0) where {L1<:LINK,M<:Union{Nothing,Type{<:Message}},L2<:Union{Nothing,LINK}}
+    timeout::Real=5.0) where {L1<:Link,M<:Union{Nothing,Type{<:Message}},L2<:Union{Nothing,Link}}
 
     done = [false]
     msg = Timeout()
@@ -91,32 +98,32 @@ function receive!(lk::L1, Msg::M, from::L2;
 
     @async begin
         while !done[1]
-            timeout == 0 && !isready(lk) && break
-            _match(fetch(lk), Msg, from) && break
-            done[1] || push!(stash, take!(lk))
+            timeout == 0 && !isready(lk.chn) && break
+            _match(fetch(lk.chn), Msg, from) && break
+            done[1] || push!(stash, take!(lk.chn))
         end
         notify(ev)
     end
 
     wait(ev)
     done[1] = true
-    isready(lk) && (msg = take!(lk))
-    while !isempty(stash) && isready(lk)
-        push!(stash, take!(lk))
+    isready(lk.chn) && (msg = take!(lk.chn))
+    while !isempty(stash) && isready(lk.chn)
+        push!(stash, take!(lk.chn))
     end
-    foreach(x->put!(lk,x), stash)
+    foreach(x->put!(lk.chn, x), stash)
     return msg
 end
 
 """
 ```
-request!(lk::LINK, msg::Message; full=false, timeout::Real=5.0)
-request!(lk::LINK, Msg::Type{<:Message}, args...; kwargs...)
+request!(lk::Link, msg::Message; full=false, timeout::Real=5.0)
+request!(lk::Link, Msg::Type{<:Message}, args...; kwargs...)
 ```
 Send a message to an actor, block, receive and return the result.
 
 # Arguments
-- `lk::LINK`: actor link,
+- `lk::Link`: actor link,
 - `msg::Message`: a message,
 - `Msg::Type{<:Message}`: a message type,
 - `args...`: optional arguments to `Msg`, 
@@ -126,20 +133,17 @@ Send a message to an actor, block, receive and return the result.
 - `kwargs...`: `full` or `timeout`.
 
 """
-function request!(lk::LK, msg::M; full=false, timeout::Real=5.0) where {LK<:LINK,M<:Message}
+function request!(lk::L, msg::Message; 
+                full=false, timeout::Real=5.0) where L<:Link
     send!(lk, msg)
     resp = receive!(msg.from, timeout=timeout)
-    if resp isa Timeout || full
-        return resp
-    else
-        return resp.y
-    end
+    return resp isa Timeout || full ? resp : resp.y
 end
-function request!(lk::LK, Msg::Type{<:Message}, args...; kwargs...) where LK<:LINK 
-    me = lk isa Link ? Link(1) : RemoteChannel(()->Link(1))
-    if Msg in (Exec, Query)
-        request!(lk, Msg(args..., me); kwargs...)
-    else
+function request!(lk::L, Msg::Type{<:Message}, args...; kwargs...)  where L<:Link
+    me = lk isa Link{Channel{Message}} ?
+            Link(1) : 
+            Link(RemoteChannel(()->Channel{Message}(1)), myid(), :remote)
+    return Msg in (Exec, Query) ?
+        request!(lk, Msg(args..., me); kwargs...) :
         request!(lk, isempty(args) ? Msg(me) : Msg(args, me); kwargs...)
-    end
 end

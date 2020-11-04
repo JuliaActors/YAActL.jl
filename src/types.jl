@@ -22,33 +22,17 @@ to the behavior function:
 @enum Dispatch full state
 
 """
-A `Channel{Message}` type for communicating with local actors.
+    Link{C}(chn::C, pid::Int, type::Symbol)
 
-!!! warning "Use buffered channels!"
+A mailbox for communicating with actors.
 
-    In actor systems we use buffered links to avoid blocking.
-    Responding on an unbuffered or full link causes an actor to block.
-    `Link()` creates an unbuffered Channel. Use `Link(32)` or
-    [`newLink()`](@ref newLink) instead!
-
-# Example
-
-```julia
-julia> response = Link(32)
-Channel{Message}(sz_max:32,sz_curr:0)
-```
+# Fields/Parameters
+- `chn::C`: 
+- `pid::Int`: 
+- `type::Symbol`: 
 """
-const Link = Channel{Message}
-
-"""
-A `RemoteChannel{Link}` type for communicating with remote actors.
-"""
-const RLink = RemoteChannel{Link}
-
-"""
-A `Union{Link, RLink}` type including local and remote links. 
-"""
-const LINK = Union{Link, RLink}
-
-# define promote rule
-Base.promote_rule(::Type{Link}, ::Type{RLink}) = LINK
+struct Link{C}
+    chn::C
+    pid::Int
+    type::Symbol
+end

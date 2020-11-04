@@ -17,7 +17,7 @@ register!(lks::Vector{Channel}, lk::Link) = push!(lks, lk)
 
 Returns true if a task associated with `lk` has failed.
 """
-Base.istaskfailed(lk::Link) = !isnothing(lk.excp)
+Base.istaskfailed(lk::Link) = !isnothing(lk.chn.excp)
 
 """
     istaskfailed(lks::Vector{Link})
@@ -35,16 +35,16 @@ with `lk`.
 """
 function info(lk::Link)
 	if istaskfailed(lk)
-		return hasfield(typeof(lk.excp), :task) ? lk.excp.task : lk.excp
+		return hasfield(typeof(lk.chn.excp), :task) ? lk.chn.excp.task : lk.chn.excp
 	else
-		return lk.cond_take.waitq.head.donenotify.waitq.head.code.task.state
+		return lk.chn.cond_take.waitq.head.donenotify.waitq.head.code.task.state
 	end
 end
 
 """
-	diag!(lk::LINK)
+	diag!(lk::Link)
 
 Return the internal `_ACT` variable of the `lk` actor.
 This is only for diagnosis and testing.
 """
-diag!(lk::LK) where LK<:LINK = request!(lk, Diag)
+diag!(lk::Link) = request!(lk, Diag)

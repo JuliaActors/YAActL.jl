@@ -25,7 +25,7 @@ end
 
 # t = Ref{Task}()                # this is for debugging
 # lk = LinkParams(2, taskref=t)
-
+sleep(5)
 # start an actor with the first behavior and save the returned link
 myactor = Actor(workers()[1], pr)
 
@@ -41,4 +41,4 @@ become!(myactor, calc, +, 10)
 
 send!(myactor, Request(5, USR))
 
-take!(USR)
+take!(USR.chn)

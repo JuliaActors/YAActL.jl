@@ -161,6 +161,13 @@ julia> call!(myfib, 1000)
 
 The dictionary `D` is private to the actor.
 
-## Generic Server
+## Generic Function Servers
 
-This is not yet implemented.
+`YAActL` actors support directives like:
+
+- [`become!`](@ref): cause an actor to switch its behavior,
+- [`call!`](@ref) an actor to execute its behavior function and to send the result,
+- [`cast!`](@ref): cause an actor to execute its behavior function,
+- [`exec!`](@ref): tell an actor to execute a function and to send the result.
+
+They operate as state machines for executing functions. This makes them generic function servers. As shown above the behavior functions may implement state machines as well. They can start other child or siblings actors for doing things. Thus they can represent a hierarchy of state machines.

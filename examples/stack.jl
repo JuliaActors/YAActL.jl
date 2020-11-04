@@ -42,7 +42,7 @@ end
 
 mystack = Actor(stack_node, StackNode(nothing, Link()))
 
-response = newLink()
+response = Link()
 
 send!(mystack, Pop(response))  # new stack
 receive!(response).y           # returns nothing

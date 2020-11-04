@@ -31,4 +31,4 @@ become!(myactor, calc, +, 10);         # now become a adding machine
 
 send!(myactor, Request(5, USR));       # send a request to add 5
 
-take!(USR)                             # take the result
+take!(USR.chn)                             # take the result

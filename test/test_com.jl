@@ -12,22 +12,22 @@ end
 
 struct MySource <: Message
     x::Int
-    from::LINK
+    from::Link
 end
 
 function writeLk(lk::Link, src=true, slp=false)
     for i in 1:4
-        put!(lk, MyMsg(i))
+        put!(lk.chn, MyMsg(i))
         yield()
         slp && sleep(rand()*0.1)
     end
     if src
-        put!(lk, MySource(10, USR))
+        put!(lk.chn, MySource(10, USR))
         yield()
         slp && sleep(rand()*0.1)
     end
     for i in 5:8
-        put!(lk, MyMsg(i))
+        put!(lk.chn, MyMsg(i))
         yield()
         slp && sleep(rand()*0.1)
     end
@@ -35,8 +35,8 @@ end
 
 function readLk(lk::Link)
     buf = Int[]
-    while isready(lk)
-        push!(buf, take!(lk).x)
+    while isready(lk.chn)
+        push!(buf, take!(lk.chn).x)
     end
     buf
 end
@@ -59,31 +59,31 @@ myLink = Link(10)
 @test !YAActL._match(MySource(1,USR), MySource, myLink)
 
 writeLk(myLink)
-@test length(myLink.data) == 9
+@test length(myLink.chn.data) == 9
 msg = receive!(myLink, MySource, USR)
 @test msg == MySource(10, USR)
-@test length(myLink.data) == 8
+@test length(myLink.chn.data) == 8
 @test readLk(myLink) == collect(1:8)
-@test length(myLink.data) == 0
+@test length(myLink.chn.data) == 0
 
 msg = receive!(myLink, MySource, USR, timeout=1)
 @test msg == Timeout()
 
 writeLk(myLink, false)
-@test length(myLink.data) == 8
+@test length(myLink.chn.data) == 8
 msg = receive!(myLink, MySource, USR, timeout=0)
 @test msg == Timeout()
-@test length(myLink.data) == 8
+@test length(myLink.chn.data) == 8
 @test readLk(myLink) == collect(1:8)
-@test length(myLink.data) == 0
+@test length(myLink.chn.data) == 0
 
 @async writeLk(myLink, true, true)
 msg = receive!(myLink, MySource, USR)
 @test msg == MySource(10, USR)
 sleep(1)
-@test length(myLink.data) == 8
+@test length(myLink.chn.data) == 8
 @test readLk(myLink) == collect(1:8)
-@test length(myLink.data) == 0
+@test length(myLink.chn.data) == 0
 
 comtest(msg::MySource) = nothing
 function comtest(msg::Request)

@@ -6,8 +6,6 @@
 
 using YAActL, Test
 
-@test promote_type(Link, RLink) == LINK
-
 struct Incr <: Message
     x::Int
 end
@@ -29,7 +27,7 @@ A = Actor(lp, inca)
 @test A isa Link
 @test t[].state == :runnable
 act = YAActL.diag!(A)
-@test act.link == A
+@test act.self == A
 @test act.bhv.f == inca
 
 send!(A, Incr(10))
@@ -47,7 +45,7 @@ sleep(0.2)
 
 exit!(A)
 sleep(0.1)
-@test !isopen(A)
+@test !isopen(A.chn)
 
 B = Actor(fail)
 send!(B, Incr(0))

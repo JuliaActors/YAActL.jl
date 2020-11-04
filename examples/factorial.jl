@@ -22,7 +22,7 @@ end
 
 # setup factorial actor and response link
 F = Actor(rec_factorial)
-resp = newLink()
+resp = Link()
 
 for i ∈ 0:5:50      # send and receive loop
     send!(F, Request(big(i), resp))

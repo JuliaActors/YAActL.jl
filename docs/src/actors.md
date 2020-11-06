@@ -10,10 +10,10 @@ CurrentModule = YAActL
 > - create a finite number of new actors;
 > - designate the behavior to be used for the next message it receives. [^1]
 
-`YAActL` actors are Julia tasks running on a computer or in a network, represented by local or remote [`Link`](@ref)s, channels over which they receive and send [messages](messages.md) [^2]. They:
+`YAActL` actors are Julia `Task`s running on a computer or in a network, represented by local or remote [`Link`](@ref)s, channels over which they receive and send [messages](messages.md) [^2]. They:
 
 - *react* to those messages,
-- *execute* user defined [behavior functions](behavior.md) when receiving certain messages,
+- *execute* a user defined [behavior function](behavior.md) when they receive certain messages,
 - *change* their behavior upon request,
 - *update* their [internal state](@ref state) which influences how they behave.
 
@@ -21,39 +21,24 @@ The following provides an overview of `YAActL` actors:
 
 ## Start
 
-In the simplest case with [`Actor`](@ref) we start an actor with a [behavior](behavior.md) function. The following actor when called sends its `threadid`:
+In the simplest case we start an [`Actor`](@ref) with a [behavior](behavior.md) function:
 
-```julia
-julia> using YAActL, .Threads
-
-julia> act1 = Actor(threadid)               # start an actor who gives its threadid
-Link{Channel{Message}}(Channel{Message}(sz_max:32,sz_curr:0), 1, :local)
-
-julia> call!(act1)                          # call it
-1
-
-julia> act2 = Actor(parallel(), threadid)   # start a parallel actor
-Link{Channel{Message}}(Channel{Message}(sz_max:32,sz_curr:0), 1, :local)
-
-julia> call!(act2)                          # and call it
-2
-
-julia> using Distributed
-
-julia> addprocs(1);
-
-julia> @everywhere using YAActL
-
-julia>  act3 = Actor(2, println)            # start a remote actor on pid 2 with a println behavior
-Link{RemoteChannel{Channel{Message}}}(RemoteChannel{Channel{Message}}(2, 1, 11), 2, :remote)
-
-julia> call!(act3, "Tell me where you are!") # and call it with an argument
-      From worker 2:    Tell me where you are!
+```@repl
+using YAActL, .Threads
+act1 = Actor(threadid)               # start an actor who gives its threadid
+call!(act1)                          # call it
+act2 = Actor(parallel(), threadid)   # start a parallel actor
+call!(act2)                          # and call it
+using Distributed
+addprocs(1);
+@everywhere using YAActL
+act3 = Actor(2, println)            # start a remote actor on pid 2 with a println behavior
+call!(act3, "Tell me where you are!") # and call it with an argument
 ```
 
 ## Links
 
-When we started our first actor, we got a [link](@ref links) variable `act1` to it. This represents a local channel over which actors can receive and send messages. Our third actor got a `RemoteChannel`. Actors are only represented by their links.
+When we started our first actor, we got a [`Link`](@ref) to it. This represents a local `Channel` over which actors can receive and send messages. Our third actor got a link with a `RemoteChannel`. Actors are only represented by their links.
 
 ## Messages
 
@@ -85,20 +70,18 @@ When actors receive
 - arguments from [`cast!`](@ref) or [`call!`](@ref) or
 - a [`Request`](@ref) or a user implemented message
 
-they [compose](@ref composition) their owned arguments with the received ones and [dispatch](@ref dispatch) their [behavior](behavior.md) function. Then they store the return value in their internal [`res`](@ref _ACT) variable. 
+they [compose](@ref composition) their owned arguments with the received ones and [dispatch](@ref dispatch) their [behavior](behavior.md) function. Then they store the return value in their internal [`res`](@ref _ACT) variable.
 
 Following further [our example](examples/stack.md):
 
 ```julia
 julia> mystack = Actor(stack_node, StackNode(nothing, Link())); # start an actor with a first argument
-
 ```
 
 `mystack` represents an actor with a `stack_node` behavior and first argument `StackNode(nothing, Link())`. When it eventually receives a message ...
 
 ```julia
 julia> send!(mystack, Push(1))        # push 1 on the stack
-
 ```
 
 ..., it executes `stack_node(StackNode(nothing, Link()), Push(1))`.
@@ -128,7 +111,7 @@ Actors can also operate on themselves, or rather they send messages to themselve
 What if you want to receive a reply from an actor? Then there are two possibilities:
 
 1. [`send!`](@ref) a message to an actor and then [`receive!`](@ref) the [`Response`](@ref) asynchronously,
-2. [`request!`](@ref): send a message to an actor, **block** and [`receive!`](@ref) the result synchronously.
+2. [`request!`](@ref): send a message to an actor, **block** and receive the result synchronously.
 
 The following functions do this for specific duties:
 
@@ -136,7 +119,8 @@ The following functions do this for specific duties:
 - [`exec!`](@ref): tell an actor to execute a function and to send the result,
 - [`query!`](@ref) tell an actor's to send one of its internal state variables.
 
-If you don't provide those functions with a return link, they will block and return the result. Note that you should not use blocking when you need to be strictly responsive.
+If you provide those functions with a return link, they will use [`send!`](@ref) and you can then [`receive!`](@ref) the [`Response`](@ref) from the return link. If you 
+don't provide a return link, they will use [`request!`](@ref) to block and return the result. Note that you should not use blocking when you need to be strictly responsive.
 
 ## Using the API
 
@@ -157,9 +141,33 @@ act4.state
 
 ## Actor Registry
 
-If a parent actor or worker process creates actors, its link is only locally known. It has to be sent to all other actors that want to communicate with it.
+If a parent actor or worker process creates a new actor, the link to it is only locally known. It has to be sent to all other actors that want to communicate with it.
 
-Alternatively an actor link can be registered under a name (a `Symbol`). Then any actor in the system can communicate with it by using its name.
+Alternatively an actor link can be registered under a name (a `Symbol`). Then any actor in the system can communicate with it using that name.
+
+```@repl
+using YAActL, Distributed
+addprocs(1);
+@everywhere using YAActL
+@everywhere function ident(id, from)
+    id == from ?
+        ("local actor",  id, from) :
+        ("remote actor", id, from)
+end
+register(:act1, Actor(ident, 1))       # a registered local actor
+call!(:act1, myid())                   # call! it
+register(:act2, Actor(2, ident, 2))    # a registered remote actor on pid 2
+call!(:act2, myid())                   # call! it
+fetch(@spawnat 2 call!(:act1, myid())) # call! :act1 on pid 2
+fetch(@spawnat 2 call!(:act2, myid())) # call! :act2 on pid 2
+whereis(:act1)                         # get a link to :act1
+whereis(:act2)                         # get a link to :act2
+fetch(@spawnat 2 whereis(:act1))       # get a link to :act1 on pid 2
+registered()                           # get a list of registered actors
+fetch(@spawnat 2 registered())         # get it on pid 2
+```
+
+The registry works transparently across workers. All workers have access to registered actors on other workers via remote links.
 
 ## Actor State
 

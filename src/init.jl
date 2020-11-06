@@ -12,13 +12,6 @@ function __init__()
         global _REG = Link(
             RemoteChannel(()->Actor(_reg, Dict{Symbol, Link}()).chn), 
             1, :remote)
-        # ch = Channel{Message}(32)
-        # global _treg = Task(()->_act(ch))
-        # bind(ch, _treg)
-        # schedule(_treg)
-        # global _REG = Link(RemoteChannel(()->ch), 1, :remote)
-        # put!(ch, Update(:self, _REG))
-        # become!(_REG, _reg, Dict{Symbol, Link}())
     else
         tmp = Actor(1, ()->YAActL.USR)
         global USR = call!(tmp)

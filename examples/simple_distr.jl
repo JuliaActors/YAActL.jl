@@ -1,8 +1,6 @@
 using Distributed
 length(procs()) == 1 && addprocs(1)
 
-@everywhere using Pkg
-@everywhere Pkg.activate(".")
 @everywhere using YAActL, Printf
 
 @everywhere begin

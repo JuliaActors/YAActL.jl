@@ -52,11 +52,11 @@ message to `from`.
 If the actor is set to `state` dispatch, it updates its internal 
 state with the result. 
 """
-struct Call{T} <: Message
-    x::T
+struct Call <: Message
+    x
     from::Link
 end
-Call(from) = Call{Tuple{}}((),from)
+Call(from) = Call((),from)
 
 """
     Cast(arg)
@@ -67,10 +67,10 @@ its behavior with `arg...` without sending a response.
 If the actor is set to `state` dispatch, it updates its internal 
 state with the result. 
 """
-struct Cast{T} <: Message
-    x::T
+struct Cast <: Message
+    x
 end
-Cast() = Cast{Tuple{}}(())
+Cast() = Cast(())
 
 """
     Diag(from::Link)
@@ -88,8 +88,8 @@ end
 A synchronous [`Message`](@ref) to an actor to execute `func`
 and to send a `Response` message with the return value to `from`.
 """
-struct Exec{F} <: Message
-    func::F
+struct Exec <: Message
+    func
     from::Link
 end
 
@@ -123,8 +123,8 @@ end
 
 A generic [`Message`](@ref) for user requests.
 """
-struct Request{T} <: Message
-    x::T
+struct Request <: Message
+    x
     from::Link
 end
 
@@ -137,8 +137,8 @@ A [`Message`](@ref) representing a response to requests.
 - `y`: response content,
 - `from::Link`: sender link.
 """
-struct Response{T} <: Message
-    y::T
+struct Response <: Message
+    y
     from::Link
 end
 Response(y) = Response(y, self())
@@ -150,8 +150,8 @@ A [`Message`](@ref) causing an actor to stop with an exit
 `code`. If present, it calls its [`term!`](@ref) function with
 `code` as last argument.
 """
-struct Stop{T} <: Message 
-    x::T
+struct Stop <: Message 
+    x::Int
 end
 Stop() = Stop(0)
 
@@ -180,7 +180,7 @@ internal state `s` to `x`.
 
 - `s::Symbol` can be one of `:sta`, `:dsp`, `:arg`, `:lnk`.
 """
-struct Update{T} <: Message
+struct Update <: Message
     s::Symbol
-    x::T
+    x
 end

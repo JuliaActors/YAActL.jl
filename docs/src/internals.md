@@ -54,11 +54,13 @@ If your behavior functions get mutable types as parameters, you must ensure that
 - either you don't share those variables between actors
 - or you don't change them by using only [pure functions](https://en.wikipedia.org/wiki/Pure_function) as behaviors.
 
-## Global State
+## Mutable Variables
 
-Race conditions can happen if actors in parallel use or modify global or shared variables. The best advice is not to use global or shared variables with actors.
+!!! warning "Sharing mutable variables is dangerous!"
 
-If for some reason you want to use global variables or to share variables between actors, you must use the [lock pattern](https://docs.julialang.org/en/v1/manual/multi-threading/#Data-race-freedom) or [atomic operations](https://docs.julialang.org/en/v1/manual/multi-threading/#Atomic-Operations) described in the Julia manual. But both approaches **block** an actor until it succeeds to access the variable.
+    Race conditions can happen if actors in parallel use or modify global or shared variables. The best advice is not to use global or shared variables with actors.
+
+If for some reason you want to use global variables or to share variables between actors, you must use a [lock](https://docs.julialang.org/en/v1/manual/multi-threading/#Data-race-freedom) or [atomic operations](https://docs.julialang.org/en/v1/manual/multi-threading/#Atomic-Operations) described in the Julia manual. But both approaches **block** an actor until it succeeds to access the variable.
 
 [^1]: see: [Data-race freedom](https://docs.julialang.org/en/v1/manual/multi-threading/#Data-race-freedom) in the Julia manual.
 [^2]: see: [Side effects and mutable function arguments](https://docs.julialang.org/en/v1/manual/multi-threading/#Side-effects-and-mutable-function-arguments) in the Julia manual.

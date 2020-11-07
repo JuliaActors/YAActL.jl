@@ -169,11 +169,24 @@ fetch(@spawnat 2 registered())         # get it on pid 2
 
 The registry works transparently across workers. All workers have access to registered actors on other workers via remote links.
 
-## Actor State
+## Actor Isolation
+
+In order to avoid race conditions actors have to be strongly isolated from each other:
+
+1. they do not share state,
+2. they must not share mutable variables.
 
 An actor stores the behavior function and arguments to it, results of computations and more. Thus it has [state](@ref state) and this influences how it behaves.
 
 But it does **not share** its state variables with its environment (only for [diagnostic](diagnosis.md) purposes). The [API](api.md) functions above are a safe way to access actor state via messaging.
+
+Mutable variables in Julia can be sent over local channels without being copied. Accessing those variables from multiple threads can cause race conditions. The programmer has to be careful to avoid those situations either by
+
+- not sharing them between actors,
+- copying them when sending them to actors or
+- acquiring a lock around any access to data that can be observed from multiple threads. [^3]
+
+When sending mutable variables over remote links, they are automatically copied.
 
 ## Actor Local Dictionary
 
@@ -181,3 +194,4 @@ Since actors are Julia tasks, they have a local dictionary in which you can stor
 
 [^1]: See: The [Actor Model](https://en.wikipedia.org/wiki/Actor_model) on Wikipedia.
 [^2]: They build on Julia's concurrency primitives  `@spawn`, `put!` and `take!` on `Channel`s.
+[^3]: see [Data race freedom](https://docs.julialang.org/en/v1/manual/multi-threading/#Data-race-freedom) in the Julia manual.

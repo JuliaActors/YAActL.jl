@@ -17,7 +17,7 @@ end
 length(procs()) == 1 && addprocs(1)
 
 @safetestset "Basics"        begin include("test_basics.jl") end
-# @testset "Actors"            begin include("test_actors.jl") end
+@testset "Actors"            begin include("test_actors.jl") end
 @safetestset "Communication" begin include("test_com.jl") end
 @safetestset "API"           begin include("test_api.jl") end
 @testset "Registry"          begin include("test_registry.jl") end

@@ -29,11 +29,14 @@ function _send!(rch::RemoteChannel, m::Message)
 end
 
 """
-    send!(lk::Link, m::Message)
-
-Send a message `m` to an actor over a [`Link`](@ref) `lk`.
+```
+send!(lk::Link, m::Message)
+send!(name::Symbol, m::Message)
+```
+Send a message `m` to an actor `lk` or `name` (if registered).
 """
 send!(lk::L, m::Message) where L<:Link = _send!(lk.chn, m)
+send!(name::Symbol, m::Message) = _send!(whereis(name).chn, m)
 
 # """
 # ```
@@ -119,11 +122,12 @@ end
 ```
 request!(lk::Link, msg::Message; full=false, timeout::Real=5.0)
 request!(lk::Link, Msg::Type{<:Message}, args...; kwargs...)
+request!(name::Symbol, args...; kwargs...)
 ```
 Send a message to an actor, block, receive and return the result.
 
 # Arguments
-- `lk::Link`: actor link,
+- `lk::Link`: actor link, or `name::Symbol` (if registered),
 - `msg::Message`: a message,
 - `Msg::Type{<:Message}`: a message type,
 - `args...`: optional arguments to `Msg`, 
@@ -147,3 +151,4 @@ function request!(lk::L, Msg::Type{<:Message}, args...; kwargs...)  where L<:Lin
         request!(lk, Msg(args..., me); kwargs...) :
         request!(lk, isempty(args) ? Msg(me) : Msg(args, me); kwargs...)
 end
+request!(name::Symbol, args...; kwargs...) = request!(whereis(name), args...; kwargs...)

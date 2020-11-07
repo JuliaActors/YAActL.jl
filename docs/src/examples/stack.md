@@ -1,6 +1,10 @@
-# [A Stack](@id stack_example)
+# [A Linked List of Actors](@id stack_example)
 
-This is Agha's example 3.2.1. It implements a stack as a collection of actors with two operations/messages `Push` and `Pop`. A `StackNode` stores a content and a [`Link`](@ref) to the next [`Actor`](@ref) in the chain.
+!!! note "This illustrates the actor model"
+
+    It is **not** a proposal for an actual stack implementation. It uses `YAActL`s message API to be as close as possible to Agha's orginal example.
+
+This is Agha's example 3.2.1. It implements a stack of actors with two operations/messages `Push` and `Pop`. A `StackNode` stores a content and a [`Link`](@ref) to the next [`Actor`](@ref) in the chain.
 
 > The top of the stack is the only receptionist in the stack system and was the only actor of the stack system created externally. It is created with a NIL content which is assumed to be the bottom of the stack marker. Notice that no mail address of a stack node is ever communicated by any node to an external actor. Therefore no actor outside the configuration defined above can affect any of the actors inside the stack except by sending the receptionist a communication. When a *pop* operation is done, the actor on top of the stack simply becomes a *forwarder* to the next actor in the link. This means that all communications received by the top of the stack are now forwarded to the next element.
 

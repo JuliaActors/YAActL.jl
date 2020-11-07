@@ -12,7 +12,7 @@ become!(name::Symbol, ....)
 Cause an actor to change behavior.
 
 # Arguments
-- `lk::Link`: Link to an actor,
+- actor `lk::Link` (or `name::Symbol` if registered),
 - `bhv`: function implementing the new behavior,
 - `args1...`: first arguments to `bhv` (without a possible `msg` argument),
 - `kwargs...`: keyword arguments to `bhv`.
@@ -27,11 +27,11 @@ call!(lk::Link, from::Link, args2...)
 call!(lk::Link, args2...; timeout::Real=5.0)
 call!(name::Symbol, ....)
 ```
-Call an actor to execute its behavior function  
-and to send a [`Response`](@ref) with the result. 
+Call an actor to execute its behavior and to send a 
+[`Response`](@ref) with the result. 
 
 # Arguments
-- `lk::Link` or `name::Symbol`of [`registered`](@ref) actor, 
+- actor `lk::Link` (or `name::Symbol` if registered), 
 - `from::Link`: sender link; If `from` is omitted, `call!` 
     blocks and returns the result. 
 - `args2...`: second arguments to the actor.
@@ -46,8 +46,9 @@ call!(name::Symbol, args...; kwargs...) = call!(whereis(name), args...; kwargs..
 cast!(lk::Link, args2...)
 cast!(name::Symbol, args2...)
 ```
-Cast a message to the `lk` actor to execute its behavior 
-function with `args2...` without sending a response. 
+Cast a message to the actor `lk` (or `name` if registered) to 
+execute its behavior with `args2...` without sending a 
+response. 
 
 *Note:* you can prompt the returned value with [`query!`](@ref).
 """
@@ -62,8 +63,9 @@ exec!(lk::Link, fu::Func; timeout::Real=5.0)
 exec!(name::Symbol, ....)
 ```
 
-Ask an actor to execute an arbitrary function and to 
-send the returned value as [`Response`](@ref).
+Ask an actor `lk` (or `name` if registered) to execute an 
+arbitrary function and to send the returned value as 
+[`Response`](@ref).
 
 # Arguments
 - `lk::Link` or `name::Symbol` of the actor,
@@ -87,7 +89,7 @@ exec!(name::Symbol, args...; kwargs...) = exec!(whereis(name), args...; kwargs..
 exit!(lk::Link, code=0)
 exit!(name::Symbol, code=0)
 ```
-Tell an actor `lk` to exit. If it has a [`term`](@ref _ACT) 
+Tell an actor `lk` (or `name` if registered) to exit. If it has a [`term`](@ref _ACT) 
 function, it calls it with `code` as last argument. 
 
 !!! note "This behavior is not yet fully implemented!"
@@ -212,12 +214,13 @@ update!(lk::Link, x; s::Symbol=:sta)
 update!(lk::Link, arg::Args)
 update!(name::Symbol, ....)
 ```
-Update the `lk` actor's internal state `s` with `args...`.
+Update an actor's internal state `s` with `args...`.
 
 # Arguments
+- an actor `lk::Link` or `name::Symbol` (if registered),
 - `x`: value/variable to update the choosen state with,
 - `arg::Args`: arguments to update,
-- `s::Symbol`: can be one of `:sta`, `:dsp`, `:arg`, `:lnk`.
+- `s::Symbol`: can be one of `:sta`, `:dsp`, `:arg`, `:self`, `:name`.
 
 *Note:* If you want to update the stored arguments to the 
 behavior function with `s=:arg`, you must pass an [`Args`](@ref) 

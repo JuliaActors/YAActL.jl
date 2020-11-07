@@ -17,7 +17,8 @@ Internal actor status variable.
 4. `bhv::Func` : the behavior function and its internal arguments,
 5. `init::Func`: the init function and its arguments,
 6. `term::Func`: the terminate function and its arguments,
-7. `self::Link`: the actors (local or remote) self.
+7. `self::Link`: the actor's (local or remote) self,
+8. `name::Symbol`: the actor's registered name.
 
 see also: [`Dispatch`](@ref), [`Func`](@ref), [`Link`](@ref)
 """
@@ -29,9 +30,10 @@ mutable struct _ACT
     init::Union{Nothing,Func}
     term::Union{Nothing,Func}
     self::Union{Nothing,Link}
+    name::Union{Nothing,Symbol}
 
-    _ACT() = 
-        new(full, nothing, nothing, Func(), nothing, nothing, nothing)
+    _ACT() = new(full, nothing, nothing, Func(), 
+                 nothing, nothing, nothing, nothing)
 end
 
 _terminate!(A::_ACT, code) = !isnothing(A.term) && A.term.f((A.term.args..., code)...; kwargs...)
@@ -58,12 +60,13 @@ _act(A::_ACT, msg::Query, ::Val{:dsp}) = send!(msg.from, Response(A.dsp, A.self)
 _act(A::_ACT, msg::Query, x) = send!(msg.from, Response("$x not available", A.self))
 
 # dispatch on Update message
-_act(A::_ACT, msg::Update, ::Val{:sta}) = A.sta = msg.x
-_act(A::_ACT, msg::Update, ::Val{:dsp}) = A.dsp = msg.x
+_act(A::_ACT, msg::Update, ::Val{:sta})  = A.sta  = msg.x
+_act(A::_ACT, msg::Update, ::Val{:dsp})  = A.dsp  = msg.x
 _act(A::_ACT, msg::Update, ::Val{:self}) = A.self = msg.x
-_act(A::_ACT, msg::Update, ::Val{:arg}) =
-    A.bhv = Func(A.bhv.f, msg.x.args...;
-        pairs((; merge(A.bhv.kwargs, msg.x.kwargs)...))...)
+_act(A::_ACT, msg::Update, ::Val{:name}) = A.name = msg.x
+_act(A::_ACT, msg::Update, ::Val{:arg})  = A.bhv = 
+    Func(A.bhv.f, msg.x.args...;
+         pairs((; merge(A.bhv.kwargs, msg.x.kwargs)...))...)
 _act(A::_ACT, msg::Update, x) = nothing
 
 _tuple(x) = applicable(length, x) ? Tuple(x) : (x,)
@@ -111,6 +114,7 @@ function _act(ch::Channel{Message})
         msg isa Stop && break
         yield()
     end
+    isnothing(A.name) || call!(_REG, unregister, A.name)
 end
 
 """

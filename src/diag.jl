@@ -42,9 +42,12 @@ function info(lk::Link)
 end
 
 """
-	diag!(lk::Link)
-
+```
+diag!(lk::Link)
+diag!(name::Symbol)
+```
 Return the internal `_ACT` variable of the `lk` actor.
 This is only for diagnosis and testing.
 """
 diag!(lk::Link) = request!(lk, Diag)
+diag!(name::Symbol) = request!(name, Diag)

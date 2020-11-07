@@ -1,5 +1,9 @@
 # [A Recursive Factorial](@id factorial_example)
 
+!!! note "This illustrates the actor model"
+
+    It is **not** a proposal for an actual factorial implementation. It uses `YAActL`s message API to be as close as possible to Agha's orginal example.
+
 This is Agha's example 3.2.2:
 
 > Our implementation of the *factorial* relies on creating a *customer* which waits for the appropriate communication, in this case from the factorial actor itself. The factorial actor is free to concurrently process the next communication. We assume that a communication to a factorial includes a mail address to which the value of the factorial is to be sent.
@@ -47,4 +51,4 @@ julia>  for i ∈ 0:5:50      # send and receive loop
 30414093201713378043612608166064768844377641568960512000000000000
 ```
 
-If we send our requests successively without waiting and then read the response link, we still get the same sequence – which is a bit surprising. For sure this is not the most effective method to implement a factorial.
+If we send our requests successively without waiting and then read the response link, we still get the same sequence – which is a bit surprising. 

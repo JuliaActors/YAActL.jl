@@ -154,6 +154,7 @@ addprocs(1);
         ("local actor",  id, from) :
         ("remote actor", id, from)
 end
+sleep(1) # hide
 register(:act1, Actor(ident, 1))       # a registered local actor
 call!(:act1, myid())                   # call! it
 register(:act2, Actor(2, ident, 2))    # a registered remote actor on pid 2

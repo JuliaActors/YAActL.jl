@@ -28,5 +28,6 @@ redirect_devnull() do
     @safetestset "Simple"        begin include("../examples/simple.jl") end
     @safetestset "Simple msg."   begin include("../examples/simple_msg.jl") end
     @testset     "Simple distr." begin include("../examples/simple_distr.jl") end
+    @testset     "Registry"      begin include("../examples/registry_ex.jl") end
     @safetestset "Stack"         begin include("../examples/stack.jl") end
 end

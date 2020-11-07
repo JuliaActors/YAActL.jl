@@ -16,16 +16,26 @@
 Register the actor `lk` with `name`. Returns `true` if the 
 registration succeeds, `false` if `name` is already in use.
 """
-register(name::Symbol, lk::Link) = myid() == 1 ?
+function register(name::Symbol, lk::Link) 
+    res = myid() == 1 ?
         call!(_REG, register, name, lk) :
         call!(_REG, register, name, Link(RemoteChannel(()->lk.chn),myid(),:remote))
+    update!(lk, name, s=:name)
+    return res
+end
 
 """
     unregister(name::Symbol)
 
 Remove any registrations associated with `name`.
 """
-unregister(name::Symbol) = call!(_REG, unregister, name)
+function unregister(name::Symbol)
+    lk = whereis(name)
+    if !ismissing(lk)
+        call!(_REG, unregister, name)
+        update!(lk, nothing, s=:name)
+    end
+end
 
 """
     whereis(name::Symbol)

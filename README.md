@@ -4,10 +4,10 @@
 
 [![stable docs](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliaactors.github.io/YAActL.jl/stable/)
 [![dev docs](https://img.shields.io/badge/docs-dev-blue.svg)](https://juliaactors.github.io/YAActL.jl/dev)
-[![Build Status](https://travis-ci.com/pbayer/YAActL.jl.svg?branch=master)](https://travis-ci.com/pbayer/YAActL.jl)
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/pbayer/YAActL.jl?svg=true)](https://ci.appveyor.com/project/pbayer/YAActL-jl)
-[![Coverage](https://codecov.io/gh/pbayer/YAActL.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/pbayer/YAActL.jl)
-[![Coverage Status](https://coveralls.io/repos/github/pbayer/YAActL.jl/badge.svg?branch=master)](https://coveralls.io/github/pbayer/YAActL.jl?branch=master)
+![CI](https://github.com/JuliaActors/YAActL.jl/workflows/CI/badge.svg)
+[![Build Status](https://ci.appveyor.com/api/projects/status/github/juliaactors/YAActL.jl?svg=true)](https://ci.appveyor.com/project/juliaactors/YAActL-jl)
+[![Coverage](https://codecov.io/gh/juliaactors/YAActL.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/juliaactors/YAActL.jl)
+[![Coverage Status](https://coveralls.io/repos/github/juliaactors/YAActL.jl/badge.svg?branch=master)](https://coveralls.io/github/juliaactors/YAActL.jl?branch=master)
 
 `YAActL` is based on the [Actor model](https://en.wikipedia.org/wiki/Actor_model). An actor
 

@@ -16,13 +16,13 @@ pkg> add YAActL
 
 The development version is installed with:
 ```julia
-pkg> add("https://github.com/pbayer/YAActL.jl")
+pkg> add("https://github.com/juliaactors/YAActL.jl")
 ```
 """
 module YAActL
 
 "Gives the package version."
-const version = v"0.2.1"
+const version = v"0.2.2"
 
 using Distributed
 

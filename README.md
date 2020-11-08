@@ -2,8 +2,8 @@
 
 *Yet another Actor Library*: concurrent programming in Julia.
 
-[![stable docs](https://img.shields.io/badge/docs-stable-blue.svg)](https://pbayer.github.io/YAActL.jl/stable/)
-[![dev docs](https://img.shields.io/badge/docs-dev-blue.svg)](https://pbayer.github.io/YAActL.jl/dev)
+[![stable docs](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliaactors.github.io/YAActL.jl/stable/)
+[![dev docs](https://img.shields.io/badge/docs-dev-blue.svg)](https://juliaactors.github.io/YAActL.jl/dev)
 [![Build Status](https://travis-ci.com/pbayer/YAActL.jl.svg?branch=master)](https://travis-ci.com/pbayer/YAActL.jl)
 [![Build Status](https://ci.appveyor.com/api/projects/status/github/pbayer/YAActL.jl?svg=true)](https://ci.appveyor.com/project/pbayer/YAActL-jl)
 [![Coverage](https://codecov.io/gh/pbayer/YAActL.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/pbayer/YAActL.jl)

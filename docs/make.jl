@@ -28,7 +28,7 @@ makedocs(
 )
 
 deploydocs(
-    repo   = "github.com/juliaactors/YAActL.jl.git",
+    repo   = "github.com/JuliaActors/YAActL.jl.git",
     target = "build",
     deps   = nothing,
     make   = nothing,

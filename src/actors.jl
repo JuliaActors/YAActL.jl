@@ -112,7 +112,6 @@ function _act(ch::Channel{Message})
         msg = take!(ch)
         _act(A, msg)
         msg isa Stop && break
-        yield()
     end
     isnothing(A.name) || call!(_REG, unregister, A.name)
 end
